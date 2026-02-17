@@ -1,5 +1,5 @@
 pkgname=kitsune-dm
-pkgver=0.1.0
+pkgver=0.1.0-rc.1
 pkgrel=1
 pkgdesc="Kitsune Download Manager desktop app with native messaging host"
 arch=('x86_64')

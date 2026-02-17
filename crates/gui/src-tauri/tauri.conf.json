@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "cargo build --manifest-path ../../Cargo.toml --release -p kitsune-shim -p kitsune-cli --bin native-host-manifest && npm run build",
+    "beforeBuildCommand": "cargo build --manifest-path ../../Cargo.toml --release -p kitsune-shim --bin kitsune-shim -p kitsune-cli --bin native-host-manifest && npm run build",
     "frontendDist": "../dist"
   },
   "app": {

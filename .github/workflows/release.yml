@@ -141,9 +141,9 @@ jobs:
         id: capture_msi
         shell: pwsh
         run: |
-          $msiPath = Get-ChildItem -Path "crates/gui/src-tauri/target/release/bundle/msi" -Filter "*.msi" -File -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          $msiPath = Get-ChildItem -Path "crates/gui/src-tauri/target/release/bundle" -Filter "*.msi" -File -Recurse | Select-Object -First 1 -ExpandProperty FullName
           if (-not $msiPath) {
-            Write-Error "No MSI artifact found under crates/gui/src-tauri/target/release/bundle/msi"
+            Write-Error "No MSI artifact found under crates/gui/src-tauri/target/release/bundle"
             exit 1
           }
           $msiFileName = [System.IO.Path]::GetFileName($msiPath)
@@ -257,9 +257,15 @@ jobs:
         shell: bash
         run: rustup default ${{ env.RUST_TOOLCHAIN }}
 
+      - name: Create non-root build user for makepkg
+        shell: bash
+        run: |
+          useradd --create-home --shell /bin/bash builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
       - name: Build Linux Arch package
         shell: bash
-        run: makepkg --syncdeps --noconfirm --cleanbuild --clean
+        run: su builder -c 'cd "$GITHUB_WORKSPACE" && makepkg --noconfirm --cleanbuild --clean'
 
       - name: Capture Arch package output path
         id: capture_arch

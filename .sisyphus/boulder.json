@@ -1,10 +1,9 @@
 {
-  "active_plan": "/home/oliver/src/Rust/Kitsune-DM/.sisyphus/plans/kitsune-cross-platform-installer.md",
-  "started_at": "2026-02-17T10:07:21.352Z",
+  "active_plan": "C:\\Users\\olivg\\Documents\\src\\Rust\\Kitsune-Download-Manager\\.sisyphus\\plans\\kitsune-cicd-releases.md",
+  "started_at": "2026-02-17T15:56:47.093Z",
   "session_ids": [
-    "ses_394fe37faffeMe40euxfERnusA",
-    "ses_393f70b5effei0Z42fXqrTaHhh"
+    "ses_393bd7cbeffezHDWzNm8jKA9BM"
   ],
-  "plan_name": "kitsune-cross-platform-installer",
+  "plan_name": "kitsune-cicd-releases",
   "agent": "atlas"
 }

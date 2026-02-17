@@ -141,9 +141,9 @@ jobs:
         id: capture_msi
         shell: pwsh
         run: |
-          $msiPath = Get-ChildItem -Path "crates/gui/src-tauri/target/release/bundle" -Filter "*.msi" -File -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          $msiPath = Get-ChildItem -Path "$env:GITHUB_WORKSPACE/target/release/bundle" -Filter "*.msi" -File -Recurse | Select-Object -First 1 -ExpandProperty FullName
           if (-not $msiPath) {
-            Write-Error "No MSI artifact found under crates/gui/src-tauri/target/release/bundle"
+            Write-Error "No MSI artifact found under target/release/bundle"
             exit 1
           }
           $msiFileName = [System.IO.Path]::GetFileName($msiPath)
@@ -211,9 +211,9 @@ jobs:
         id: capture_deb
         shell: bash
         run: |
-          mapfile -t deb_files < <(find crates/gui/src-tauri/target/release/bundle/deb -type f -name "*.deb" | sort)
+          mapfile -t deb_files < <(find "$GITHUB_WORKSPACE/target/release/bundle/deb" -type f -name "*.deb" | sort)
           if [ "${#deb_files[@]}" -eq 0 ]; then
-            echo "No Debian artifact found under crates/gui/src-tauri/target/release/bundle/deb" >&2
+            echo "No Debian artifact found under target/release/bundle/deb" >&2
             exit 1
           fi
           if [ "${#deb_files[@]}" -ne 1 ]; then
@@ -265,7 +265,9 @@ jobs:
 
       - name: Build Linux Arch package
         shell: bash
-        run: su builder -c 'cd "$GITHUB_WORKSPACE" && makepkg --noconfirm --cleanbuild --clean'
+        run: |
+          sed -i "s#https://github.com/kitsune-dm/Kitsune-DM.git#https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#g" "$GITHUB_WORKSPACE/PKGBUILD"
+          su builder -c 'cd "$GITHUB_WORKSPACE" && makepkg --noconfirm --cleanbuild --clean'
 
       - name: Capture Arch package output path
         id: capture_arch

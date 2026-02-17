@@ -289,7 +289,7 @@ jobs:
           sed -i "s#Kitsune-DM#Kitsune-Download-Manager#g" "$GITHUB_WORKSPACE/PKGBUILD"
           sed -i "s#npm ci --prefer-offline --no-audit --fund=false#npm install --prefer-offline --no-audit --fund=false#g" "$GITHUB_WORKSPACE/PKGBUILD"
           sed -i "s#cargo build --release --locked -p kitsune-gui -p kitsune-shim -p kitsune-cli --bin native-host-manifest#cargo build --release --locked -p kitsune-gui -p kitsune-shim -p kitsune-cli\ncargo build --release --locked -p kitsune-cli --bin native-host-manifest#g" "$GITHUB_WORKSPACE/PKGBUILD"
-          sed -i "s#^source=.*#source=(\"git+https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#tag=${tag}\")#" "$GITHUB_WORKSPACE/PKGBUILD"
+          sed -i "s|^source=.*|source=(\"git+https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#tag=${tag}\")|" "$GITHUB_WORKSPACE/PKGBUILD"
 
           if [ "$version" != "$base_version" ]; then
             sed -i "s#^pkgver=.*#pkgver=${base_version}#" "$GITHUB_WORKSPACE/PKGBUILD"

@@ -1,56 +1,69 @@
 # Kitsune Download Manager
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)
-![Tauri](https://img.shields.io/badge/frontend-Tauri_v2-blueviolet.svg)
-![React](https://img.shields.io/badge/ui-React_TypeScript-61dafb.svg)
+<p align="center">
+  <img src="extension/icons/KitsuneDM-full.png" alt="Kitsune Download Manager" width="520" />
+</p>
 
-**Kitsune** is a modern, cross-platform download manager designed for seamless browser integration and high performance. Built with **Rust** and **Tauri**, it combines a native-speed core with a sleek React-based interface.
+<p align="center">
+  <img src="extension/icons/icon128.png" alt="Kitsune icon" width="68" />
+</p>
 
-## 🌟 Key Features
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6feb.svg" alt="License" /></a>
+  <img src="https://img.shields.io/badge/built%20with-Rust-f74c00.svg" alt="Rust" />
+  <img src="https://img.shields.io/badge/frontend-Tauri%20v2-3b82f6.svg" alt="Tauri" />
+  <img src="https://img.shields.io/badge/ui-React%20TypeScript-149eca.svg" alt="React" />
+</p>
 
-- **🚀 Native Performance**: Powered by a Rust core (`kitsune-core`) for efficient I/O and concurrency.
-- **🔌 Browser Integration**: Uses the **Native Messaging** protocol to communicate securely with Chromium-based browsers (Chrome, Brave, Edge, Chromium). No local server required.
-- **📦 Cross-Platform**:
-  - **Linux**: First-class support for Debian/Ubuntu (`.deb`) and Arch Linux (AUR-ready).
-  - **Windows**: Native MSI installer with automatic registry configuration.
-- **🛠️ Smart Installation**: Installers automatically register the native messaging host manifest for all detected browsers—no manual configuration editing needed.
-- **🔗 Deep Linking**: Supports `kitsune://` protocol links for external triggers.
+**Kitsune** is a cross-platform download manager focused on native performance and seamless browser integration. It combines a Rust-powered core with a Tauri desktop app and a browser extension bridge.
+
+## Highlights
+
+- **Native performance** with Rust (`kitsune-core`) for efficient I/O and concurrency.
+- **Direct browser integration** via Native Messaging for Chromium, Chrome, Edge, and Brave.
+- **Cross-platform installers** for Linux (`.deb` and Arch-ready) and Windows (MSI).
+- **Smart setup** that registers native host manifests automatically during installation.
+- **Deep-link support** for `kitsune://` protocol triggers.
 
 ---
 
-## 📥 Installation
+## Installation
 
-### 🐧 Linux
+### Linux
+
+<img src="extension/icons/linux_icon.png" alt="Linux icon" width="48" />
 
 #### Debian / Ubuntu / Mint
-Download the `.deb` package and install it. The post-install script handles browser registration automatically.
+Download the `.deb` package and install it. Post-install scripts handle browser host registration.
 
 ```bash
 sudo apt install ./Kitsune_Download_Manager_0.1.0_amd64.deb
 ```
 
 #### Arch Linux / Manjaro
-Build and install using the provided `PKGBUILD`. The install hooks automatically generate and register manifests for Chromium, Chrome, Edge, and Brave.
+Build and install with the bundled `PKGBUILD`. Install hooks generate and register manifests automatically.
 
 ```bash
 makepkg -si
 ```
 
-### 🪟 Windows
-1. Download and run the **MSI installer**.
-2. The installer automatically configures the Windows Registry (`HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm`) to point to the installed native host.
+### Windows
 
-### 🌐 Browser Extension
-*Currently in developer mode:*
-1. Open your browser's extensions page (e.g., `chrome://extensions`).
+<img src="extension/icons/icon128.png" alt="Kitsune app icon" width="48" />
+
+1. Download and run the **MSI installer**.
+2. The installer configures `HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm` automatically.
+
+### Browser Extension (Developer Mode)
+
+1. Open your extensions page (for example `chrome://extensions`).
 2. Enable **Developer Mode**.
-3. Click **Load unpacked** and select the `extension/` directory from this repository.
-4. The extension will automatically connect to the installed Kitsune desktop app.
+3. Click **Load unpacked** and select the `extension/` directory.
+4. The extension connects to the installed Kitsune desktop app.
 
 ---
 
-## 🏗️ Development
+## Development
 
 ### Prerequisites
 
@@ -58,7 +71,7 @@ makepkg -si
 - **Rust**: `rustup` (stable)
 - **Node.js**: v18+ (managed via `npm`)
 
-#### 🐧 Linux
+#### Linux
 **Debian / Ubuntu:**
 ```bash
 sudo apt update
@@ -70,58 +83,57 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev
 sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gtk3 libappindicator-gtk3 librsvg libvips
 ```
 
-#### 🪟 Windows
-- **WiX Toolset v3**: Required for MSI bundling.
-  > *Note: The build script attempts to handle WiX configuration automatically, but ensuring it is installed in your PATH is recommended.*
+#### Windows
+- **WiX Toolset v3** for MSI bundling.
+  - The build script can help configure WiX, but having WiX in `PATH` is recommended.
 
-### Build Instructions
+### Build
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/OliverMarcusson/Kitsune-Download-Manager.git
-    cd Kitsune-Download-Manager
-    ```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/OliverMarcusson/Kitsune-Download-Manager.git
+   cd Kitsune-Download-Manager
+   ```
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-3.  **Run in Development Mode:**
-    Starts the Tauri app and Vite dev server.
-    ```bash
-    npm run dev
-    ```
+3. **Run development mode:**
+   ```bash
+   npm run dev
+   ```
 
-4.  **Build for Production:**
+4. **Build production packages:**
 
-    **Windows (MSI):**
-    ```bash
-    npm run build:windows
-    ```
-    *Output: `crates/gui/src-tauri/target/release/bundle/msi/`*
+   **Windows (MSI):**
+   ```bash
+   npm run build:windows
+   ```
+   Output: `crates/gui/src-tauri/target/release/bundle/msi/`
 
-    **Linux (Deb/AppImage):**
-    ```bash
-    npm run build:linux
-    ```
-    *Output: `crates/gui/src-tauri/target/release/bundle/deb/` & `appimage/`*
+   **Linux (Deb/AppImage):**
+   ```bash
+   npm run build:linux
+   ```
+   Output: `crates/gui/src-tauri/target/release/bundle/deb/` and `appimage/`
 
 ---
 
-## 🧩 Architecture
+## Architecture
 
-The project is organized as a Cargo workspace with a Tauri v2 frontend:
+The project is a Cargo workspace with a Tauri v2 frontend.
 
 | Crate | Path | Description |
 |-------|------|-------------|
 | **kitsune-core** | `crates/core` | Shared business logic, download engine, and session management. |
-| **kitsune-shim** | `crates/shim` | Lightweight native messaging host. Receives browser messages via `stdio`, frames them, and forwards to the main app via IPC. |
-| **kitsune-cli** | `crates/cli` | CLI utilities, including the `native-host-manifest` generator used by installers. |
-| **kitsune-gui** | `crates/gui` | The main Tauri desktop application (React/TS frontend + Rust backend). |
+| **kitsune-shim** | `crates/shim` | Native messaging host that receives browser messages on `stdio` and forwards them via IPC. |
+| **kitsune-cli** | `crates/cli` | CLI tools, including the `native-host-manifest` generator used by installers. |
+| **kitsune-gui** | `crates/gui` | Main Tauri desktop app (React/TypeScript frontend + Rust backend). |
 
 ---
 
-## 📄 License
+## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE).

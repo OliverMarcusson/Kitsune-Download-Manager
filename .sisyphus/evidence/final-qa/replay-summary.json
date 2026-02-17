@@ -1,0 +1,84 @@
+{
+  "wave": "F3 Real QA Replay",
+  "replay_timestamp_utc": "2026-02-17T11:52:40Z",
+  "commands": [
+    "cargo build --release --bin kitsune-shim --bin native-host-manifest (if missing)",
+    "bash -lc 'source ./kitsune-dm.install; post_install' (portable Arch sandbox)",
+    "scripts/verify_installer.sh --platform arch (portable sandbox overrides)",
+    "scripts/linux/native-host-status.sh (portable sandbox overrides)",
+    "scripts/linux/self-heal-native-host.sh (portable sandbox overrides)",
+    "sh crates/gui/src-tauri/scripts/debian/postinst.sh configure (patched portable paths)",
+    "scripts/verify_installer.sh --platform debian (portable sandbox overrides)",
+    "target/release/native-host-manifest --extension-id invalid_extension_id --executable-path <shim>",
+    "./update_extension_id.sh invalid_extension_id",
+    "pwsh -File scripts/verify_installer_windows.ps1"
+  ],
+  "outcomes": [
+    {
+      "bucket": "PASS",
+      "log": "evidence/final-qa/pass.log",
+      "scenario_count": 4,
+      "outcome_lines": [
+        "OUTCOME|PASS|core-portable-linux|status=complete"
+      ]
+    },
+    {
+      "bucket": "FAIL",
+      "log": "evidence/final-qa/fail.log",
+      "scenario_count": 2,
+      "outcome_lines": [
+        "OUTCOME|FAIL|negative-paths|status=confirmed"
+      ]
+    },
+    {
+      "bucket": "UNSUPPORTED",
+      "log": "evidence/final-qa/unsupported.log",
+      "scenario_count": 2,
+      "outcome_lines": [
+        "OUTCOME|UNSUPPORTED|windows-runtime|reason=linux-host-no-windows-powershell"
+      ]
+    }
+  ],
+  "task_coverage": [
+    {
+      "task": 8,
+      "evidence": "self-heal-native-host smoke",
+      "outcome": "PASS"
+    },
+    {
+      "task": 9,
+      "evidence": "native-host-status checks",
+      "outcome": "PASS/FAIL"
+    },
+    {
+      "task": 10,
+      "evidence": "native-host-manifest strict invalid-id rejection",
+      "outcome": "FAIL(expected)"
+    },
+    {
+      "task": 11,
+      "evidence": "verify_installer arch/debian deterministic checks",
+      "outcome": "PASS/FAIL"
+    },
+    {
+      "task": 12,
+      "evidence": "update_extension_id argument rejection",
+      "outcome": "FAIL(expected)"
+    },
+    {
+      "task": 13,
+      "evidence": "debian verifier replay in portable sandbox",
+      "outcome": "PASS"
+    },
+    {
+      "task": 14,
+      "evidence": "arch verifier replay in portable sandbox",
+      "outcome": "PASS"
+    },
+    {
+      "task": 15,
+      "evidence": "windows verifier invocation on linux host",
+      "outcome": "UNSUPPORTED"
+    }
+  ]
+}

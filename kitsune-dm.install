@@ -1,0 +1,69 @@
+post_install() {
+  _kitsune_register_native_host
+}
+
+post_upgrade() {
+  _kitsune_register_native_host
+}
+
+pre_remove() {
+  _kitsune_unregister_native_host
+}
+
+_kitsune_register_native_host() {
+  local ext_id_file="${KITSUNE_DM_EXT_ID_FILE:-/usr/lib/kitsune-dm/installer/extension_id_source.txt}"
+  local shim_path="${KITSUNE_DM_SHIM_PATH:-/usr/lib/kitsune-dm/installer/bin/kitsune-shim}"
+  local manifest_generator="${KITSUNE_DM_MANIFEST_GENERATOR:-/usr/lib/kitsune-dm/installer/bin/native-host-manifest}"
+  local ext_id
+  local manifest
+  local target_dir
+  local target_dirs=(
+    "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
+    "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
+    "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+  )
+
+  if [[ ! -s "${ext_id_file}" ]]; then
+    printf '%s\n' "[kitsune-dm] skipping native host registration: missing ${ext_id_file}" >&2
+    return
+  fi
+
+  if [[ ! -x "${manifest_generator}" ]]; then
+    printf '%s\n' "[kitsune-dm] skipping native host registration: missing ${manifest_generator}" >&2
+    return
+  fi
+
+  if [[ ! -x "${shim_path}" ]]; then
+    printf '%s\n' "[kitsune-dm] skipping native host registration: missing ${shim_path}" >&2
+    return
+  fi
+
+  ext_id="$(tr -d '\n' < "${ext_id_file}")"
+  if [[ ! "${ext_id}" =~ ^[a-p]{32}$ ]]; then
+    printf '%s\n' "[kitsune-dm] skipping native host registration: invalid extension ID in ${ext_id_file}" >&2
+    return
+  fi
+
+  if ! manifest="$("${manifest_generator}" --extension-id "${ext_id}" --executable-path "${shim_path}")"; then
+    printf '%s\n' "[kitsune-dm] skipping native host registration: manifest generation failed" >&2
+    return
+  fi
+
+  for target_dir in "${target_dirs[@]}"; do
+    install -d -m755 "${target_dir}"
+    printf '%s\n' "${manifest}" > "${target_dir}/com.kitsune.dm.json"
+  done
+}
+
+_kitsune_unregister_native_host() {
+  local target_dir
+  local target_dirs=(
+    "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
+    "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
+    "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+  )
+
+  for target_dir in "${target_dirs[@]}"; do
+    rm -f "${target_dir}/com.kitsune.dm.json"
+  done
+}

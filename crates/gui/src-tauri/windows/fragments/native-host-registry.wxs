@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="KitsuneNativeMessagingRegistryEntries" Guid="*">
+        <RegistryKey Root="HKCU" Key="Software\Google\Chrome\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" KeyPath="yes" />
+        </RegistryKey>
+        <RegistryKey Root="HKCU" Key="Software\Chromium\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+        </RegistryKey>
+        <RegistryKey Root="HKCU" Key="Software\Microsoft\Edge\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+        </RegistryKey>
+        <RegistryKey Root="HKCU" Key="Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

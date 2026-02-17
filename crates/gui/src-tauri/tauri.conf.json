@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Kitsune Download Manager",
+  "version": "0.1.0",
+  "identifier": "com.kitsune.dm",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "cargo build --manifest-path ../../Cargo.toml --release -p kitsune-shim -p kitsune-cli --bin native-host-manifest && npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Kitsune Download Manager",
+        "width": 800,
+        "height": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "protocols": [
+        "kitsune"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "windows": {
+      "wix": {
+        "fragmentPaths": [
+          "windows/fragments/native-host-registry.wxs"
+        ],
+        "componentRefs": [
+          "KitsuneNativeMessagingRegistryEntries"
+        ]
+      }
+    },
+    "linux": {
+      "deb": {
+        "postInstallScript": "scripts/debian/postinst.sh",
+        "preRemoveScript": "scripts/debian/prerm.sh"
+      }
+    },
+    "resources": {
+      "../../../target/release/kitsune-shim": "installer/bin/kitsune-shim",
+      "../../../target/release/native-host-manifest": "installer/bin/native-host-manifest",
+      "../../../scripts/linux/self-heal-native-host.sh": "installer/bin/self-heal-native-host",
+      "../../../scripts/linux/native-host-status.sh": "installer/bin/native-host-status",
+      "../../../extension/extension_id_source.txt": "installer/extension_id_source.txt",
+      "windows/native-host/com.kitsune.dm.json": "installer/native-host/com.kitsune.dm.json"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ]
+  }
+}

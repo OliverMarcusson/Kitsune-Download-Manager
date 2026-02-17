@@ -1,0 +1,21 @@
+DEBIAN E2E FAILURE SCENARIO (INTENTIONAL INVALID PATH)
+timestamp=2026-02-17T11:36:36Z
+sandbox=/tmp/tmp.UuL8XiGEZ3
+tampered_manifest=/tmp/tmp.UuL8XiGEZ3/etc/chromium/native-messaging-hosts/com.kitsune.dm.json
+-- task11 verifier expected failure --
+INFO|platform|debian
+INFO|install_root|/tmp/tmp.UuL8XiGEZ3/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp.UuL8XiGEZ3/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp.UuL8XiGEZ3/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp.UuL8XiGEZ3/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp.UuL8XiGEZ3/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp.UuL8XiGEZ3/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp.UuL8XiGEZ3/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.UuL8XiGEZ3/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|FAIL|path mismatch: expected '/tmp/tmp.UuL8XiGEZ3/install-root/installer/bin/kitsune-shim', got '/tmp/intentional-invalid-shim'
+CHECK|native_host_manifest:/tmp/tmp.UuL8XiGEZ3/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.UuL8XiGEZ3/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.UuL8XiGEZ3/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|FAIL|checks=11 failures=1
+verify_exit=1
+scenario=failure

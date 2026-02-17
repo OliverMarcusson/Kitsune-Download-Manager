@@ -1,0 +1,40 @@
+ARCH E2E FAILURE SCENARIO
+sandbox=/tmp/tmp.anT2IoMage
+timestamp=2026-02-17T11:26:24Z
+-- post_install with invalid extension id (expected skip) --
+[kitsune-dm] skipping native host registration: invalid extension ID in /tmp/tmp.anT2IoMage/install-root/installer/extension_id_source.txt
+-- verify_installer arch should fail --
+INFO|platform|arch
+INFO|install_root|/tmp/tmp.anT2IoMage/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp.anT2IoMage/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp.anT2IoMage/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp.anT2IoMage/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|FAIL|invalid chromium id in:/tmp/tmp.anT2IoMage/install-root/installer/extension_id_source.txt
+Error: extension ID must be exactly 32 chars in [a-p]
+CHECK|manifest_generation|FAIL|generator execution failed:/tmp/tmp.anT2IoMage/install-root/installer/bin/native-host-manifest
+CHECK|native_host_manifest:/tmp/tmp.anT2IoMage/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|FAIL|missing file:/tmp/tmp.anT2IoMage/etc/chromium/native-messaging-hosts/com.kitsune.dm.json
+CHECK|native_host_manifest:/tmp/tmp.anT2IoMage/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|FAIL|missing file:/tmp/tmp.anT2IoMage/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json
+CHECK|native_host_manifest:/tmp/tmp.anT2IoMage/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|FAIL|missing file:/tmp/tmp.anT2IoMage/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json
+RESULT|FAIL|checks=9 failures=5
+verify_exit=1
+-- native-host-status should fail invalid extension id --
+app_path=/bin/true
+app_status=ok
+shim_path=/tmp/tmp.anT2IoMage/install-root/installer/bin/kitsune-shim
+shim_status=ok
+manifest_generator=/tmp/tmp.anT2IoMage/install-root/installer/bin/native-host-manifest
+manifest_generator_status=ok
+extension_id_file=/tmp/tmp.anT2IoMage/install-root/installer/extension_id_source.txt
+extension_id_status=invalid
+overall=error
+error=invalid_extension_id
+status_exit=3
+-- manifest generator strict validation (task 10) --
+Error: extension ID must be exactly 32 chars in [a-p]
+manifest_generator_exit=1
+-- deprecated wrapper argument rejection (task 12) --
+Error: update_extension_id.sh no longer accepts extension ID arguments.
+Migration: run ./install_native_host.sh (uses extension/extension_id_source.txt).
+wrapper_exit=2
+scenario=failure-mode-confirmed

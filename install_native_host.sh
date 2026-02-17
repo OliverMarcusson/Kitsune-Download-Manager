@@ -5,36 +5,41 @@ set -e
 echo "Building Kitsune-DM..."
 cargo build --release
 
-# Path to the wrapper script (not the binary directly)
-EXE_PATH="$(pwd)/target/release/kitsune-native-host.sh"
+REPO_ROOT="$(pwd)"
 
-# Native Messaging Host Manifest
-MANIFEST_CONTENT='{
-  "name": "com.kitsune.dm",
-  "description": "Kitsune Download Manager Native Host",
-  "path": "'$EXE_PATH'",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://bfcakaqnpoejeopjomhibhijkhhfxgfd/"
-  ]
-}'
+# Path to the binary
+EXE_PATH="${KITSUNE_DM_SHIM_PATH:-$REPO_ROOT/target/release/kitsune-shim}"
 
-# Note: The extension ID "bfcakaqnpoejeopjomhibhijkhhfxgfd" is a placeholder. 
-# The user will need to update this after loading the extension in Chrome to get the generated ID.
-# Or, we can use a fixed key in manifest.json to ensure a stable ID.
-# For now, I'll add a instruction to the user.
+EXT_ID_FILE="${KITSUNE_DM_EXT_ID_FILE:-$REPO_ROOT/extension/extension_id_source.txt}"
+if [ ! -s "$EXT_ID_FILE" ]; then
+  echo "Error: $EXT_ID_FILE is missing or empty."
+  exit 1
+fi
+EXT_ID=$(tr -d '\n' < "$EXT_ID_FILE")
+if ! [[ "$EXT_ID" =~ ^[a-p]{32}$ ]]; then
+  echo "Error: canonical extension ID in $EXT_ID_FILE must be exactly 32 chars in [a-p]."
+  exit 1
+fi
+
+MANIFEST_GENERATOR="${KITSUNE_DM_MANIFEST_GENERATOR:-$REPO_ROOT/target/release/native-host-manifest}"
+if [ ! -x "$MANIFEST_GENERATOR" ]; then
+  echo "Error: expected manifest generator binary at $MANIFEST_GENERATOR"
+  exit 1
+fi
+
+MANIFEST_CONTENT="$($MANIFEST_GENERATOR --extension-id "$EXT_ID" --executable-path "$EXE_PATH")"
 
 echo "Creating Native Messaging Host manifest..."
 
-# List of possible Native Messaging Host directories
 TARGET_DIRS=(
   "$HOME/.config/google-chrome/NativeMessagingHosts"
   "$HOME/.config/chromium/NativeMessagingHosts"
   "$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts"
-  "$HOME/.config/microsoft-edge/NativeMessagingHosts"
 )
 
-echo "Creating Native Messaging Host manifest..."
+if [ -n "${KITSUNE_DM_TARGET_DIRS:-}" ]; then
+  IFS=' ' read -r -a TARGET_DIRS <<< "$KITSUNE_DM_TARGET_DIRS"
+fi
 
 for TARGET_DIR in "${TARGET_DIRS[@]}"; do
   if [ -d "$(dirname "$TARGET_DIR")" ]; then
@@ -45,5 +50,7 @@ for TARGET_DIR in "${TARGET_DIRS[@]}"; do
 done
 
 echo "Done!"
-echo "NOTE: You MUST update the 'allowed_origins' in the generated manifest(s) with your actual Extension ID."
-echo "      Check '$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.kitsune.dm.json' (for Brave)"
+echo "Native host manifests updated for extension ID: $EXT_ID"
+if [ -x "$REPO_ROOT/scripts/linux/native-host-status.sh" ]; then
+  echo "Verify registration: $REPO_ROOT/scripts/linux/native-host-status.sh"
+fi

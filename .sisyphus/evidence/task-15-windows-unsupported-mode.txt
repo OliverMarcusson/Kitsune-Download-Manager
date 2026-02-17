@@ -1,0 +1,25 @@
+Task: 15. Windows MSI E2E verification wave
+Environment: Linux (no Windows registry subsystem)
+Date: 2026-02-17
+
+Failure-mode / unsupported-mode evidence
+---------------------------------------
+1) Attempted required verifier execution:
+   Command: pwsh -File scripts/verify_installer_windows.ps1
+   Output: /usr/sbin/bash: line 1: pwsh: command not found
+
+2) PowerShell runtime availability check:
+   Command: which pwsh
+   Output: which: no pwsh in (...PATH...)
+
+3) Deterministic non-Windows behavior in verifier source:
+   File: scripts/verify_installer_windows.ps1
+   Lines:
+     if (-not $IsWindows) {
+         Write-Output 'RESULT|UNSUPPORTED|reason=windows-only verification script executed on non-windows environment'
+         exit 2
+     }
+
+Conclusion:
+- Real Windows execution is not possible in this environment.
+- Unsupported path is deterministic by script contract (RESULT|UNSUPPORTED + exit 2).

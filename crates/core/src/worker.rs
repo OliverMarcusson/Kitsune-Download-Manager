@@ -47,6 +47,7 @@ impl Worker {
         match self.do_run().await {
             Ok(_) => Ok(()),
             Err(e) => {
+                log::error!("Worker {} encountered a fatal error: {}", id, e);
                 // Report error status (2) so main loop knows to abort
                 let _ = tx.send((id, 0, 2)).await;
                 Err(e)

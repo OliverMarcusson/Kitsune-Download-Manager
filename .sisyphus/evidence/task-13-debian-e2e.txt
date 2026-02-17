@@ -1,0 +1,144 @@
+DEBIAN E2E SUCCESS SCENARIO (MAXIMAL DETERMINISTIC SUBSET)
+timestamp=2026-02-17T11:35:34Z
+sandbox=/tmp/tmp.tVlYl6R5vH
+-- package build --
+bundle=target/release/bundle/deb/Kitsune Download Manager_0.1.0_amd64.deb
+-- task5 hook/payload metadata from Debian bundle --
+ new Debian package, version 2.0.
+ size 6664818 bytes: control archive=1327 bytes.
+     220 bytes,     9 lines      control              
+    1014 bytes,    11 lines      md5sums              
+    1484 bytes,    47 lines   *  postinst             #!/bin/sh
+     467 bytes,    16 lines   *  prerm                #!/bin/sh
+ Package: kitsune-download-manager
+ Version: 0.1.0
+ Architecture: amd64
+ Installed-Size: 18846
+ Maintainer: you
+ Priority: optional
+ Depends: libappindicator3-1, libwebkit2gtk-4.1-0, libgtk-3-0
+ Description: A Tauri App
+  (none)
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/bin
+-rwxr-xr-x 0/0        17110720 2026-02-17 11:26 usr/bin/kitsune-gui
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/lib
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/lib/Kitsune Download Manager
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer
+-rw-r--r-- 0/0              33 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/extension_id_source.txt
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/native-host
+-rw-r--r-- 0/0             296 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/native-host/com.kitsune.dm.json
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/bin
+-rwxr-xr-x 0/0         1149480 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/bin/native-host-manifest
+-rwxr-xr-x 0/0          794224 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim
+-rwxr-xr-x 0/0            3741 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/bin/self-heal-native-host
+-rwxr-xr-x 0/0            4546 2026-02-17 11:26 usr/lib/Kitsune Download Manager/installer/bin/native-host-status
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/32x32
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/32x32/apps
+-rw-r--r-- 0/0            1930 2026-02-17 11:26 usr/share/icons/hicolor/32x32/apps/kitsune-gui.png
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/128x128
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/128x128/apps
+-rw-r--r-- 0/0           16581 2026-02-17 11:26 usr/share/icons/hicolor/128x128/apps/kitsune-gui.png
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/512x512@2
+drwxr-xr-x 0/0               0 2026-02-17 11:26 usr/share/icons/hicolor/512x512@2/apps
+-- install simulation (register manifests across Debian target dirs) --
+registered=/tmp/tmp.tVlYl6R5vH/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json
+registered=/tmp/tmp.tVlYl6R5vH/etc/chromium/native-messaging-hosts/com.kitsune.dm.json
+registered=/tmp/tmp.tVlYl6R5vH/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json
+registered=/tmp/tmp.tVlYl6R5vH/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json
+registered=/tmp/tmp.tVlYl6R5vH/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json
+-- task11 verifier (debian) happy path --
+INFO|platform|debian
+INFO|install_root|/tmp/tmp.tVlYl6R5vH/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp.tVlYl6R5vH/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp.tVlYl6R5vH/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|PASS|checks=11 failures=0
+-- task9 native-host-status helper --
+app_path=/bin/true
+app_status=ok
+shim_path=/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/kitsune-shim
+shim_status=ok
+manifest_generator=/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/native-host-manifest
+manifest_generator_status=ok
+extension_id_file=/tmp/tmp.tVlYl6R5vH/install-root/installer/extension_id_source.txt
+extension_id_status=ok
+manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json=ok
+overall=ok
+-- task8 self-heal helper smoke --
+[kitsune-dm self-heal] created /tmp/tmp.tVlYl6R5vH/home/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] created /tmp/tmp.tVlYl6R5vH/home/.config/chromium/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] completed, created 2 manifest(s)
+-- upgrade path simulation (re-register after induced drift) --
+INFO|platform|debian
+INFO|install_root|/tmp/tmp.tVlYl6R5vH/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp.tVlYl6R5vH/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp.tVlYl6R5vH/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp.tVlYl6R5vH/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.tVlYl6R5vH/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|PASS|checks=11 failures=0
+-- task12 deprecated wrapper behavior --
+Error: update_extension_id.sh no longer accepts extension ID arguments.
+Migration: run ./install_native_host.sh (uses extension/extension_id_source.txt).
+update_extension_id_exit=2
+-- uninstall cleanup simulation --
+cleanup=ok:/tmp/tmp.tVlYl6R5vH/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.tVlYl6R5vH/etc/chromium/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.tVlYl6R5vH/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.tVlYl6R5vH/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.tVlYl6R5vH/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:install-root-removed:/tmp/tmp.tVlYl6R5vH/install-root
+-- actual Debian VM/container lifecycle gap --
+actual_install_exit=100
+/var/lib/dpkg/info/kitsune-download-manager.postinst: 38: /usr/lib/Kitsune: not found
+dpkg: error processing package kitsune-download-manager (--configure):
+E: Sub-process /usr/bin/dpkg returned an error code (1)
+remaining_gap=Run full lifecycle after quoting fix in crates/gui/src-tauri/scripts/debian/postinst.sh line using MANIFEST_BIN path; command: docker run --rm -v /home/oliver/src/Rust/Kitsune-DM:/work -w /work debian:bookworm-slim bash -lc "apt-get update && apt-get install -y python3 && apt-get install -y ./target/release/bundle/deb/Kitsune\ Download\ Manager_0.1.0_amd64.deb && /bin/sh scripts/verify_installer.sh --platform debian && apt-get install -y --reinstall ./target/release/bundle/deb/Kitsune\ Download\ Manager_0.1.0_amd64.deb && apt-get purge -y kitsune-download-manager"
+scenario=success
+
+-- debian blocker fix rerun (postinst path quoting) --
+timestamp=2026-02-17T12:03:12Z
+command_1=sh -n crates/gui/src-tauri/scripts/debian/postinst.sh
+command_1_exit=0
+command_2=cd crates/gui && npm run tauri build
+command_2_note=Debian bundle rebuilt at target/release/bundle/deb/Kitsune Download Manager_0.1.0_amd64.deb; AppImage bundling failed (linuxdeploy) after .deb output was produced.
+command_3=docker run --rm -v /home/oliver/src/Rust/Kitsune-DM:/work -w /work debian:bookworm-slim bash -lc "export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y python3 && apt-get install -y ./target/release/bundle/deb/Kitsune\\ Download\\ Manager_0.1.0_amd64.deb && /bin/sh scripts/verify_installer.sh --platform debian && apt-get install -y --reinstall ./target/release/bundle/deb/Kitsune\\ Download\\ Manager_0.1.0_amd64.deb && apt-get purge -y kitsune-download-manager"
+command_3_exit=0
+check=CHECK|install_root|PASS|exists:/usr/lib/Kitsune Download Manager
+check=CHECK|app_binary|PASS|executable:/usr/bin/kitsune-gui
+check=CHECK|shim_binary|PASS|executable:/usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim
+check=CHECK|manifest_generator|PASS|executable:/usr/lib/Kitsune Download Manager/installer/bin/native-host-manifest
+check=CHECK|extension_id_source|PASS|valid:/usr/lib/Kitsune Download Manager/installer/extension_id_source.txt
+check=CHECK|manifest_generation|PASS|output validated for shim:/usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim
+check=CHECK|native_host_manifest:/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+check=CHECK|native_host_manifest:/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+check=CHECK|native_host_manifest:/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+check=CHECK|native_host_manifest:/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+check=CHECK|native_host_manifest:/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+result=RESULT|PASS|checks=11 failures=0
+reinstall=0 upgraded, 0 newly installed, 1 reinstalled, 0 to remove and 0 not upgraded.
+purge=Removing kitsune-download-manager (0.1.0) ...
+blocker_check=no '/usr/lib/Kitsune: not found' observed in lifecycle rerun output
+remaining_gap=none

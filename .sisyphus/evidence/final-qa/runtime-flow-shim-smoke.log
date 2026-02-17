@@ -1,0 +1,23 @@
+META|timestamp|2026-02-17T12:14:43Z
+META|scope|shim-runtime-flow-smoke
+CHECK|shim_binary|PASS|/home/oliver/src/Rust/Kitsune-DM/target/debug/kitsune-shim
+CHECK|framed_message_written|PASS|len=70
+CHECK|ipc_port_file|PASS|/tmp/shim-smoke-jxjp3sx9/xdg/kitsune-dm/ipc.port
+CHECK|ipc_receive|PASS|received='https://example.com/native?flow=shim'
+CHECK|shim_exit|PASS|code=0
+CHECK|shim_log_received_message|PASS
+CHECK|shim_log_message_length|PASS
+CHECK|shim_log_dispatch_path|PASS
+CHECK|stderr_empty|PASS|bytes=0
+INFO|bound|validated shim framing + IPC dispatch-attempt path on Linux CLI harness
+INFO|bound|does not execute browser extension runtime or real GUI listener implementation
+LOG|shim|BEGIN
+LOG|shim|Kitsune shim started
+LOG|shim|Message length: 70
+LOG|shim|Received message: {"command":"AddDownload","url":"https://example.com/native?flow=shim"}
+LOG|shim|Sent URL via IPC to running GUI
+LOG|shim|EOF reached on stdin
+LOG|shim|Kitsune shim exiting
+LOG|shim|END
+RESULT|PASS|shim-runtime-flow-smoke
+ARTIFACT|tmpdir|/tmp/shim-smoke-jxjp3sx9

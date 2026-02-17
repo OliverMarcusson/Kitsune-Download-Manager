@@ -1,0 +1,8 @@
+META|timestamp|2026-02-17T11:52:40Z
+META|scope|core-qa-replay-unsupported
+SCENARIO|windows-verifier-invocation|BEGIN
+bash: line 1: pwsh: command not found
+CHECK|pwsh_invocation_exit|127
+CHECK|pwsh_lookup_exit|1
+OUTCOME|UNSUPPORTED|windows-runtime|reason=linux-host-no-windows-powershell
+SCENARIO|windows-verifier-invocation|UNSUPPORTED

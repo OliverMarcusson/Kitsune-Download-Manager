@@ -3,6 +3,7 @@
   "name": "Kitsune-DM",
   "version": "1.0",
   "description": "Download Manager Integration for Kitsune-DM",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt/5XC3dfEUAHEw67ZLiE5tFxvIO/VZgGwFekJTYoUrvdojmbWNcEJlbRMEOYEe78dmyRQ8Rns7KzC0ugArFr/ejrqB3hQeK1O5i+RyRFd2v+VWEY7UMWCgR/29RuQF7/FapXCprFIefZ8YiLF54alg2qXeKp/wjeOVNianrRX4IgnnQHB0b96CgYS5E+iAkcZ+HXiBXXW2rjtpbRtEO8aV9Q+aKvQlc2e7B2vF3dsacMJGjb1SVKOeQwMv6KiC4Somc/SZp/dqUxuUInmNSz0guh8iRe7RCRce3L04cQohWmUu9fMCfBeaqNvUPkFWX9nfum8yUkJtYrL2Xtnsc0PwIDAQAB",
   "permissions": [
     "nativeMessaging",
     "contextMenus",

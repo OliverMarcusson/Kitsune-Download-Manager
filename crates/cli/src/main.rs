@@ -1,11 +1,11 @@
-mod core;
+use kitsune_core::{Downloader, DownloadSession, ChannelObserver};
 mod native_messaging;
 mod ui;
-mod utils;
 
 use clap::Parser;
 use log::info;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -52,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting download for: {}", url);
     info!("Connections: {}", args.connections);
 
-    let downloader = core::downloader::Downloader::new(&args.user_agent)?;
+    let downloader = Downloader::new(&args.user_agent)?;
     let mut session;
     let session_file;
 
@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
         session_file = PathBuf::from(format!("{}.kitsune", path.to_string_lossy()));
         if session_file.exists() {
             info!("Resuming download from session file: {:?}", session_file);
-            session = core::session::DownloadSession::load(&session_file).await?;
+            session = DownloadSession::load(&session_file).await?;
         } else {
             session = downloader.init_download(&url, Some(path), args.connections).await?;
         }
@@ -72,7 +72,7 @@ async fn main() -> anyhow::Result<()> {
         if session_file.exists() {
              info!("Resuming download from session file (resolved): {:?}", session_file);
              // TODO: Verify URL matches?
-             session = core::session::DownloadSession::load(&session_file).await?;
+             session = DownloadSession::load(&session_file).await?;
         }
     }
 
@@ -91,11 +91,12 @@ async fn main() -> anyhow::Result<()> {
     main_pb.set_position(session.parts.iter().map(|p| p.current_byte - p.start_byte).sum());
 
     let (tx, mut rx) = tokio::sync::mpsc::channel(100);
+    let observer = Arc::new(ChannelObserver::new(tx));
 
     // Spawn downloader in a separate task
     let session_file_clone = session_file.clone();
     let download_handle = tokio::spawn(async move {
-        downloader.run(&mut session, Some(tx), Some(session_file_clone)).await
+        downloader.run(&mut session, Some(observer), Some(session_file_clone), None).await
     });
 
     while let Some((_worker_id, bytes, active_workers)) = rx.recv().await {

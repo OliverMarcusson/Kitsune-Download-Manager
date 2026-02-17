@@ -1,49 +1,23 @@
 #!/bin/bash
 
-# Script to update the Native Messaging Host manifest with the correct Extension ID
+set -euo pipefail
 
-if [ -z "$1" ]; then
-  echo "Usage: $0 <extension-id>"
-  echo ""
-  echo "To find your Extension ID:"
-  echo "1. Open brave://extensions"
-  echo "2. Find the Kitsune-DM extension"
-  echo "3. Copy the ID (long alphanumeric string)"
-  echo ""
-  echo "Then run: $0 YOUR_EXTENSION_ID"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REGISTER_SCRIPT="$SCRIPT_DIR/install_native_host.sh"
+
+if [ "$#" -gt 0 ]; then
+  echo "Error: update_extension_id.sh no longer accepts extension ID arguments."
+  echo "Migration: run ./install_native_host.sh (uses extension/extension_id_source.txt)."
+  exit 2
+fi
+
+if [ ! -x "$REGISTER_SCRIPT" ]; then
+  echo "Error: missing executable migration target: $REGISTER_SCRIPT"
+  echo "Run install_native_host.sh from the repository root."
   exit 1
 fi
 
-EXTENSION_ID="$1"
-EXE_PATH="$(pwd)/target/release/kitsune-native-host.sh"
+echo "Deprecated command: update_extension_id.sh"
+echo "Redirecting to ./install_native_host.sh (canonical ID source + shared manifest generator)."
 
-# Native Messaging Host Manifest with the provided extension ID
-MANIFEST_CONTENT="{
-  \"name\": \"com.kitsune.dm\",
-  \"description\": \"Kitsune Download Manager Native Host\",
-  \"path\": \"$EXE_PATH\",
-  \"type\": \"stdio\",
-  \"allowed_origins\": [
-    \"chrome-extension://$EXTENSION_ID/\"
-  ]
-}"
-
-# List of possible Native Messaging Host directories
-TARGET_DIRS=(
-  "$HOME/.config/google-chrome/NativeMessagingHosts"
-  "$HOME/.config/chromium/NativeMessagingHosts"
-  "$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts"
-  "$HOME/.config/microsoft-edge/NativeMessagingHosts"
-)
-
-echo "Updating manifests with Extension ID: $EXTENSION_ID"
-
-for TARGET_DIR in "${TARGET_DIRS[@]}"; do
-  if [ -d "$(dirname "$TARGET_DIR")" ]; then
-    mkdir -p "$TARGET_DIR"
-    echo "$MANIFEST_CONTENT" > "$TARGET_DIR/com.kitsune.dm.json"
-    echo "Updated: $TARGET_DIR/com.kitsune.dm.json"
-  fi
-done
-
-echo "Done! Reload your extension and try again."
+exec "$REGISTER_SCRIPT"

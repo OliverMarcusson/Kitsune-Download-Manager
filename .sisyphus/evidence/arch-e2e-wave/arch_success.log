@@ -1,0 +1,72 @@
+ARCH E2E SUCCESS SCENARIO
+sandbox=/tmp/tmp.IAvGpyU5oh
+timestamp=2026-02-17T11:26:51Z
+-- makepkg availability --
+makepkg (pacman) 7.1.0
+Copyright (c) 2006-2025 Pacman Development Team <pacman-dev@lists.archlinux.org>.
+Copyright (C) 2002-2006 Judd Vinet <jvinet@zeroflux.org>.
+
+This is free software; see the source for copying conditions.
+There is NO WARRANTY, to the extent permitted by law.
+-- pkgbuild/install smoke --
+pkgbase = kitsune-dm
+	pkgdesc = Kitsune Download Manager desktop app with native messaging host
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/kitsune-dm/Kitsune-DM
+	install = kitsune-dm.install
+	arch = x86_64
+	license = MIT
+	makedepends = cargo
+	makedepends = npm
+	makedepends = git
+	depends = glibc
+	depends = gcc-libs
+	source = git+https://github.com/kitsune-dm/Kitsune-DM.git#tag=v0.1.0
+	sha256sums = SKIP
+
+pkgname = kitsune-dm
+1:post_install() {
+9:pre_remove() {
+21:    "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
+22:    "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
+23:    "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+61:    "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
+62:    "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
+63:    "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+-- post_install hook with portable overrides --
+-- verify_installer arch pass --
+INFO|platform|arch
+INFO|install_root|/tmp/tmp.IAvGpyU5oh/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp.IAvGpyU5oh/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp.IAvGpyU5oh/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp.IAvGpyU5oh/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp.IAvGpyU5oh/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp.IAvGpyU5oh/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp.IAvGpyU5oh/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.IAvGpyU5oh/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp.IAvGpyU5oh/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|PASS|checks=9 failures=0
+-- native-host-status system check --
+app_path=/bin/true
+app_status=ok
+shim_path=/tmp/tmp.IAvGpyU5oh/install-root/installer/bin/kitsune-shim
+shim_status=ok
+manifest_generator=/tmp/tmp.IAvGpyU5oh/install-root/installer/bin/native-host-manifest
+manifest_generator_status=ok
+extension_id_file=/tmp/tmp.IAvGpyU5oh/install-root/installer/extension_id_source.txt
+extension_id_status=ok
+manifest:/tmp/tmp.IAvGpyU5oh/etc/chromium/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.IAvGpyU5oh/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp.IAvGpyU5oh/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json=ok
+overall=ok
+-- self-heal helper smoke (task 8 output) --
+[kitsune-dm self-heal] created /tmp/tmp.IAvGpyU5oh/home/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] created /tmp/tmp.IAvGpyU5oh/home/.config/chromium/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] completed, created 2 manifest(s)
+-- pre_remove hook cleanup --
+cleanup=ok:/tmp/tmp.IAvGpyU5oh/etc/chromium/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.IAvGpyU5oh/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json
+cleanup=ok:/tmp/tmp.IAvGpyU5oh/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json
+scenario=success

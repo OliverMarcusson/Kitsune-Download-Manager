@@ -1,0 +1,48 @@
+META|timestamp|2026-02-17T11:52:40Z
+META|scope|core-qa-replay-pass
+SCENARIO|arch-portable-success|BEGIN
+INFO|platform|arch
+INFO|install_root|/tmp/tmp51bsqchx/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp51bsqchx/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp51bsqchx/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp51bsqchx/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp51bsqchx/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp51bsqchx/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|PASS|checks=9 failures=0
+app_path=/bin/true
+app_status=ok
+shim_path=/tmp/tmp51bsqchx/install-root/installer/bin/kitsune-shim
+shim_status=ok
+manifest_generator=/tmp/tmp51bsqchx/install-root/installer/bin/native-host-manifest
+manifest_generator_status=ok
+extension_id_file=/tmp/tmp51bsqchx/install-root/installer/extension_id_source.txt
+extension_id_status=ok
+manifest:/tmp/tmp51bsqchx/etc/chromium/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp51bsqchx/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json=ok
+manifest:/tmp/tmp51bsqchx/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json=ok
+overall=ok
+[kitsune-dm self-heal] created /tmp/tmp51bsqchx/home/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] created /tmp/tmp51bsqchx/home/.config/chromium/NativeMessagingHosts/com.kitsune.dm.json
+[kitsune-dm self-heal] completed, created 2 manifest(s)
+SCENARIO|arch-portable-success|PASS
+SCENARIO|debian-portable-success|BEGIN
+INFO|platform|debian
+INFO|install_root|/tmp/tmp51bsqchx/install-root
+CHECK|install_root|PASS|exists:/tmp/tmp51bsqchx/install-root
+CHECK|app_binary|PASS|executable:/bin/true
+CHECK|shim_binary|PASS|executable:/tmp/tmp51bsqchx/install-root/installer/bin/kitsune-shim
+CHECK|manifest_generator|PASS|executable:/tmp/tmp51bsqchx/install-root/installer/bin/native-host-manifest
+CHECK|extension_id_source|PASS|valid:/tmp/tmp51bsqchx/install-root/installer/extension_id_source.txt
+CHECK|manifest_generation|PASS|output validated for shim:/tmp/tmp51bsqchx/install-root/installer/bin/kitsune-shim
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/opt/chrome/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/chromium/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/chromium-browser/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/opt/edge/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+CHECK|native_host_manifest:/tmp/tmp51bsqchx/etc/opt/brave.com/brave/native-messaging-hosts/com.kitsune.dm.json|PASS|valid
+RESULT|PASS|checks=11 failures=0
+SCENARIO|debian-portable-success|PASS
+OUTCOME|PASS|core-portable-linux|status=complete

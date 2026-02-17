@@ -5,11 +5,31 @@ use reqwest::{Client, header};
 use std::path::PathBuf;
 use tokio::fs::OpenOptions;
 use tokio::sync::mpsc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::collections::HashMap;
 use tokio::time::timeout;
 use std::time::{Duration, Instant};
+
+pub trait DownloadObserver: Send + Sync {
+    fn on_progress(&self, worker_id: u8, bytes_downloaded: u64, active_workers: usize);
+}
+
+pub struct ChannelObserver {
+    tx: mpsc::Sender<(u8, u64, usize)>,
+}
+
+impl ChannelObserver {
+    pub fn new(tx: mpsc::Sender<(u8, u64, usize)>) -> Self {
+        Self { tx }
+    }
+}
+
+impl DownloadObserver for ChannelObserver {
+    fn on_progress(&self, worker_id: u8, bytes_downloaded: u64, active_workers: usize) {
+        let _ = self.tx.try_send((worker_id, bytes_downloaded, active_workers));
+    }
+}
 
 #[derive(Clone)]
 pub struct Downloader {
@@ -29,56 +49,67 @@ impl Downloader {
         })
     }
 
-    pub async fn init_download(&self, url: &str, output_path: Option<PathBuf>, connections: u8) -> Result<DownloadSession> {
-        let response = self.client.head(url).send().await?;
+    pub async fn get_remote_metadata(&self, url: &str) -> Result<(String, Option<u64>, bool)> {
+        let response = self.client
+            .get(url)
+            .header(header::RANGE, "bytes=0-0")
+            .send()
+            .await?;
         let headers = response.headers();
 
         let total_size = headers
-            .get(header::CONTENT_LENGTH)
+            .get(header::CONTENT_RANGE)
             .and_then(|val| val.to_str().ok())
-            .and_then(|val| val.parse::<u64>().ok());
-            // .context("Failed to get content length")?; // Don't fail yet, might be chunked or unknown
+            .and_then(|val| val.split('/').last())
+            .and_then(|val| val.parse::<u64>().ok())
+            .or_else(|| {
+                headers
+                    .get(header::CONTENT_LENGTH)
+                    .and_then(|val| val.to_str().ok())
+                    .and_then(|val| val.parse::<u64>().ok())
+            });
 
-        let accept_ranges = headers
-            .get(header::ACCEPT_RANGES)
-            .and_then(|val| val.to_str().ok())
-            .map(|val| val == "bytes")
-            .unwrap_or(false);
-        
-        // Filename resolution priority:
-        // 1. Explicit output path (if provided)
-        // 2. Content-Disposition header
-        // 3. URL path segment
-        // 4. Default "download.bin"
+        let accept_ranges = headers.get(header::CONTENT_RANGE).is_some()
+            || headers
+                .get(header::ACCEPT_RANGES)
+                .and_then(|val| val.to_str().ok())
+                .map(|val| val == "bytes")
+                .unwrap_or(false);
+
+        let content_disposition = headers
+            .get(header::CONTENT_DISPOSITION)
+            .and_then(|val| val.to_str().ok());
+
+        let filename_from_header = content_disposition
+            .and_then(|cd| {
+                if let Some(idx) = cd.find("filename=") {
+                    let remaining = &cd[idx + 9..];
+                    let end_idx = remaining.find(';').unwrap_or(remaining.len());
+                    let raw_name = &remaining[..end_idx];
+                    Some(raw_name.trim_matches('"').to_string())
+                } else {
+                    None
+                }
+            });
+
+        let filename = filename_from_header.unwrap_or_else(|| {
+            url.split('/')
+                .last()
+                .map(|s| s.split('?').next().unwrap_or(s))
+                .filter(|s| !s.is_empty())
+                .unwrap_or("download.bin")
+                .to_string()
+        });
+
+        Ok((filename, total_size, accept_ranges))
+    }
+
+    pub async fn init_download(&self, url: &str, output_path: Option<PathBuf>, connections: u8) -> Result<DownloadSession> {
+        let (filename, total_size, accept_ranges) = self.get_remote_metadata(url).await?;
         
         let final_path = if let Some(path) = output_path {
             path
         } else {
-            let content_disposition = headers
-                .get(header::CONTENT_DISPOSITION)
-                .and_then(|val| val.to_str().ok());
-
-            let filename_from_header = content_disposition
-                .and_then(|cd| {
-                    if let Some(idx) = cd.find("filename=") {
-                        let remaining = &cd[idx + 9..];
-                        let end_idx = remaining.find(';').unwrap_or(remaining.len());
-                        let raw_name = &remaining[..end_idx];
-                        Some(raw_name.trim_matches('"').to_string())
-                    } else {
-                        None
-                    }
-                });
-
-            let filename = filename_from_header.unwrap_or_else(|| {
-                url.split('/')
-                    .last()
-                    .map(|s| s.split('?').next().unwrap_or(s)) // Remove query params
-                    .filter(|s| !s.is_empty())
-                    .unwrap_or("download.bin")
-                    .to_string()
-            });
-
             crate::utils::fs::get_downloads_dir().join(filename)
         };
 
@@ -137,14 +168,16 @@ impl Downloader {
     pub async fn run(
         &self,
         session: &mut DownloadSession,
-        ui_tx: Option<mpsc::Sender<(u8, u64, usize)>>,
+        observer: Option<Arc<dyn DownloadObserver>>,
         session_file: Option<PathBuf>,
+        cancel_flag: Option<Arc<AtomicBool>>,
     ) -> Result<()> {
         // Pre-allocate file only if starting from scratch or if file doesn't exist
         if !session.output_path.exists() {
             let file = OpenOptions::new()
                 .write(true)
                 .create(true)
+                .truncate(false)
                 .open(&session.output_path)
                 .await?;
             
@@ -187,6 +220,13 @@ impl Downloader {
         let mut next_worker_id = session.parts.iter().map(|p| p.id).max().unwrap_or(0) + 1;
         
         loop {
+            // Check cancellation
+            if let Some(ref flag) = cancel_flag {
+                if flag.load(Ordering::Relaxed) {
+                    return Err(anyhow::anyhow!("cancelled"));
+                }
+            }
+
             // Check for completion
             let all_done = session.parts.iter().all(|p| p.completed);
             if all_done {
@@ -219,11 +259,11 @@ impl Downloader {
                     pending_bytes += bytes;
 
                     // Forward to UI only if 50ms elapsed or worker completed
-                    if let Some(ui_sender) = &ui_tx {
+                    if let Some(obs) = &observer {
                         if status == 1 || last_ui_update.elapsed() >= Duration::from_millis(50) {
                             let active_count = session.parts.iter().filter(|p| !p.completed).count();
                             // Use pending_bytes
-                            let _ = ui_sender.send((worker_id, pending_bytes, active_count)).await;
+                            obs.on_progress(worker_id, pending_bytes, active_count);
                             pending_bytes = 0;
                             last_ui_update = Instant::now();
                         }
@@ -315,9 +355,9 @@ impl Downloader {
 
         // Flush any remaining accumulated bytes to UI
         if pending_bytes > 0 {
-            if let Some(ui_sender) = &ui_tx {
+            if let Some(obs) = &observer {
                 let active_count = session.parts.iter().filter(|p| !p.completed).count();
-                let _ = ui_sender.send((0, pending_bytes, active_count)).await;
+                obs.on_progress(0, pending_bytes, active_count);
             }
         }
 
@@ -334,5 +374,43 @@ impl Downloader {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+
+    struct MockObserver {
+        progress: Mutex<Vec<(u8, u64, usize)>>,
+    }
+
+    impl MockObserver {
+        fn new() -> Self {
+            Self {
+                progress: Mutex::new(Vec::new()),
+            }
+        }
+    }
+
+    impl DownloadObserver for MockObserver {
+        fn on_progress(&self, worker_id: u8, bytes_downloaded: u64, active_workers: usize) {
+            self.progress.lock().unwrap().push((worker_id, bytes_downloaded, active_workers));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_observer_reporting() {
+        let observer = Arc::new(MockObserver::new());
+        let _downloader = Downloader::new("test").unwrap();
+        
+        // This is a bit hard to test without a real server or mocking the worker.
+        // But we can at least verify the observer trait works.
+        observer.on_progress(1, 1024, 1);
+        
+        let progress = observer.progress.lock().unwrap();
+        assert_eq!(progress.len(), 1);
+        assert_eq!(progress[0], (1, 1024, 1));
     }
 }

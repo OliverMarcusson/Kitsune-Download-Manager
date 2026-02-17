@@ -280,7 +280,7 @@ jobs:
         id: capture_arch
         shell: bash
         run: |
-          mapfile -t arch_pkg_files < <(compgen -G "./*.pkg.tar.zst" | sort)
+          mapfile -t arch_pkg_files < <(compgen -G "./*.pkg.tar.zst" | grep -v -- '-debug-' | sort)
           if [ "${#arch_pkg_files[@]}" -eq 0 ]; then
             echo "No Arch package artifact found under repository root" >&2
             exit 1

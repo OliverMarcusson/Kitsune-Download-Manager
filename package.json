@@ -1,0 +1,16 @@
+{
+  "name": "kitsune-download-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix crates/gui",
+    "build": "npm run build --prefix crates/gui",
+    "tauri": "npm run tauri --prefix crates/gui",
+    "build:windows": "npm run build:windows --prefix crates/gui",
+    "build:linux": "npm run build:linux --prefix crates/gui",
+    "install:gui": "npm install --prefix crates/gui"
+  },
+  "workspaces": [
+    "crates/gui"
+  ]
+}

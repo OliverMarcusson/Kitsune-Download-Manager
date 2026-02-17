@@ -49,3 +49,10 @@ verify-installer-windows:
 clean:
 	cargo clean
 	rm -rf $(GUI_DIR)/dist $(GUI_DIR)/node_modules
+
+build-windows:
+	npm run build:windows
+
+build-linux:
+	npm run build:linux
+

@@ -1,0 +1,12 @@
+{
+  "bundle": {
+    "resources": {
+      "../../../target/release/kitsune-shim": "installer/bin/kitsune-shim",
+      "../../../target/release/native-host-manifest": "installer/bin/native-host-manifest",
+      "../../../scripts/linux/self-heal-native-host.sh": "installer/bin/self-heal-native-host",
+      "../../../scripts/linux/native-host-status.sh": "installer/bin/native-host-status",
+      "../../../extension/extension_id_source.txt": "installer/extension_id_source.txt",
+      "windows/native-host/com.kitsune.dm.json": "installer/native-host/com.kitsune.dm.json"
+    }
+  }
+}

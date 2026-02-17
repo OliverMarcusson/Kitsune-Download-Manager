@@ -53,38 +53,59 @@ makepkg -si
 ## 🏗️ Development
 
 ### Prerequisites
+
+#### General
 - **Rust**: `rustup` (stable)
-- **Node.js**: v18+ (for frontend)
-- **Linux**: `libwebkit2gtk-4.0-dev`, `build-essential`, `libssl-dev`, `libappindicator3-dev` (see Tauri docs)
-- **Windows**: WiX Toolset v3 (for MSI bundling)
+- **Node.js**: v18+ (managed via `npm`)
+
+#### 🐧 Linux
+**Debian / Ubuntu:**
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gtk3 libappindicator-gtk3 librsvg libvips
+```
+
+#### 🪟 Windows
+- **WiX Toolset v3**: Required for MSI bundling.
+  > *Note: The build script attempts to handle WiX configuration automatically, but ensuring it is installed in your PATH is recommended.*
 
 ### Build Instructions
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/OliverMarcusson/Kitsune-Download-Manager.git
-   cd Kitsune-Download-Manager
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/OliverMarcusson/Kitsune-Download-Manager.git
+    cd Kitsune-Download-Manager
+    ```
 
-2. **Install frontend dependencies:**
-   ```bash
-   cd crates/gui
-   npm install
-   ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-3. **Run in Development Mode:**
-   Starts the Tauri app and Vite dev server.
-   ```bash
-   npm run tauri dev
-   ```
+3.  **Run in Development Mode:**
+    Starts the Tauri app and Vite dev server.
+    ```bash
+    npm run dev
+    ```
 
-4. **Build for Production:**
-   Builds the Rust binaries (`kitsune-gui`, `kitsune-shim`, `native-host-manifest`) and bundles the installer.
-   ```bash
-   npm run tauri build
-   ```
-   - **Linux output:** `crates/gui/src-tauri/target/release/bundle/deb/`
-   - **Windows output:** `crates/gui/src-tauri/target/release/bundle/msi/`
+4.  **Build for Production:**
+
+    **Windows (MSI):**
+    ```bash
+    npm run build:windows
+    ```
+    *Output: `crates/gui/src-tauri/target/release/bundle/msi/`*
+
+    **Linux (Deb/AppImage):**
+    ```bash
+    npm run build:linux
+    ```
+    *Output: `crates/gui/src-tauri/target/release/bundle/deb/` & `appimage/`*
 
 ---
 

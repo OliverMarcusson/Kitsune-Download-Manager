@@ -4,16 +4,16 @@
     <DirectoryRef Id="TARGETDIR">
       <Component Id="KitsuneNativeMessagingRegistryEntries" Guid="*">
         <RegistryKey Root="HKCU" Key="Software\Google\Chrome\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" KeyPath="yes" />
+          <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" KeyPath="yes" />
         </RegistryKey>
         <RegistryKey Root="HKCU" Key="Software\Chromium\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+          <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" />
         </RegistryKey>
         <RegistryKey Root="HKCU" Key="Software\Microsoft\Edge\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+          <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" />
         </RegistryKey>
         <RegistryKey Root="HKCU" Key="Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLDIR]resources\installer\native-host\com.kitsune.dm.json" />
+          <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" />
         </RegistryKey>
       </Component>
     </DirectoryRef>

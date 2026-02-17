@@ -263,6 +263,10 @@ jobs:
           useradd --create-home --shell /bin/bash builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
 
+      - name: Setup Rust toolchain for Arch build user
+        shell: bash
+        run: su builder -c 'rustup default ${{ env.RUST_TOOLCHAIN }}'
+
       - name: Build Linux Arch package
         shell: bash
         run: |

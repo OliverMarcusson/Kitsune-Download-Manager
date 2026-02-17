@@ -267,6 +267,7 @@ jobs:
         shell: bash
         run: |
           sed -i "s#https://github.com/kitsune-dm/Kitsune-DM.git#https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#g" "$GITHUB_WORKSPACE/PKGBUILD"
+          sed -i "s#Kitsune-DM#Kitsune-Download-Manager#g" "$GITHUB_WORKSPACE/PKGBUILD"
           su builder -c 'cd "$GITHUB_WORKSPACE" && makepkg --noconfirm --cleanbuild --clean'
 
       - name: Capture Arch package output path

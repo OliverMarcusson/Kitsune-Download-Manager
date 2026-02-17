@@ -1,7 +1,7 @@
 # Kitsune Download Manager
 
 <p align="center">
-  <img src="extension/icons/KitsuneDM-full.png" alt="Kitsune Download Manager" width="520" />
+  <img src="extension/icons/icon_transparent_rembg.png" alt="Kitsune Download Manager" width="520" />
 </p>
 
 <p align="center">

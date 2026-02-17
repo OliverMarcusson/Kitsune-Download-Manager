@@ -534,7 +534,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="${{ needs.guardrails.outputs.tag }}"
-          gh release upload "${tag}" dist/publish/* --clobber
+          gh release upload "${tag}" dist/publish/* --clobber --repo "${GITHUB_REPOSITORY}"
 
       - name: Assert release assets exactly match normalized publish set
         env:

@@ -133,6 +133,17 @@ jobs:
         shell: bash
         run: npm run install:gui
 
+      - name: Normalize Windows MSI version for prerelease tags
+        shell: bash
+        run: |
+          tag="${{ needs.guardrails.outputs.tag }}"
+          version="${tag#v}"
+          base_version="${version%%-*}"
+
+          if [ "$version" != "$base_version" ]; then
+            node -e "const fs=require('fs'); const p='crates/gui/src-tauri/tauri.conf.json'; const d=JSON.parse(fs.readFileSync(p,'utf8')); d.version='${base_version}'; fs.writeFileSync(p, JSON.stringify(d, null, 2)+'\\n');"
+          fi
+
       - name: Build Windows MSI
         shell: bash
         run: npm run build:windows
@@ -270,10 +281,20 @@ jobs:
       - name: Build Linux Arch package
         shell: bash
         run: |
+          tag="${{ needs.guardrails.outputs.tag }}"
+          version="${tag#v}"
+          base_version="${version%%-*}"
+
           sed -i "s#https://github.com/kitsune-dm/Kitsune-DM.git#https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#g" "$GITHUB_WORKSPACE/PKGBUILD"
           sed -i "s#Kitsune-DM#Kitsune-Download-Manager#g" "$GITHUB_WORKSPACE/PKGBUILD"
           sed -i "s#npm ci --prefer-offline --no-audit --fund=false#npm install --prefer-offline --no-audit --fund=false#g" "$GITHUB_WORKSPACE/PKGBUILD"
           sed -i "s#cargo build --release --locked -p kitsune-gui -p kitsune-shim -p kitsune-cli --bin native-host-manifest#cargo build --release --locked -p kitsune-gui -p kitsune-shim -p kitsune-cli\ncargo build --release --locked -p kitsune-cli --bin native-host-manifest#g" "$GITHUB_WORKSPACE/PKGBUILD"
+          sed -i "s#^source=.*#source=(\"git+https://github.com/OliverMarcusson/Kitsune-Download-Manager.git#tag=${tag}\")#" "$GITHUB_WORKSPACE/PKGBUILD"
+
+          if [ "$version" != "$base_version" ]; then
+            sed -i "s#^pkgver=.*#pkgver=${base_version}#" "$GITHUB_WORKSPACE/PKGBUILD"
+          fi
+
           su builder -c 'cd "$GITHUB_WORKSPACE" && makepkg --noconfirm --cleanbuild --clean'
 
       - name: Capture Arch package output path

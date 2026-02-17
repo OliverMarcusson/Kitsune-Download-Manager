@@ -1,0 +1,52 @@
+{
+  "contractVersion": 1,
+  "releasePolicy": {
+    "tagPattern": "^v(?<version>\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)$",
+    "versionSource": "config-only",
+    "configVersionPaths": [
+      "package.json#version",
+      "crates/gui/package.json#version",
+      "crates/gui/src-tauri/tauri.conf.json#version",
+      "PKGBUILD#pkgver"
+    ],
+    "versionMismatch": {
+      "enforcement": "fail-fast",
+      "rule": "tag.version must exactly equal every configured version"
+    }
+  },
+  "requiredAssets": [
+    {
+      "id": "windows-msi",
+      "fileName": "kitsune-dm-v{version}-{platform}-{arch}.msi",
+      "platform": "windows",
+      "arch": "x64"
+    },
+    {
+      "id": "linux-deb",
+      "fileName": "kitsune-dm-v{version}-{platform}-{arch}.deb",
+      "platform": "linux",
+      "arch": "amd64"
+    },
+    {
+      "id": "arch-pkgbuild",
+      "fileName": "PKGBUILD",
+      "platform": "linux",
+      "arch": "x86_64"
+    },
+    {
+      "id": "arch-package",
+      "fileName": "kitsune-dm-v{version}-{platform}-{arch}.pkg.tar.zst",
+      "platform": "linux",
+      "arch": "x86_64"
+    },
+    {
+      "id": "checksums",
+      "fileName": "SHA256SUMS"
+    }
+  ],
+  "checksumPolicy": {
+    "algorithm": "sha256",
+    "fileName": "SHA256SUMS",
+    "requiredForAllAssets": true
+  }
+}

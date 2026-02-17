@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  rust_quality:
+    name: Rust quality checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: clippy
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-ci-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-ci-${{ env.RUST_TOOLCHAIN }}-
+
+      - name: cargo check (workspace)
+        shell: bash
+        run: cargo check --workspace
+
+      - name: cargo test (workspace)
+        shell: bash
+        run: cargo test --workspace
+
+      - name: cargo clippy (workspace, deny warnings)
+        shell: bash
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  frontend_quality:
+    name: Frontend type and build checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Install GUI dependencies
+        shell: bash
+        run: npm run install:gui
+
+      - name: Type check frontend
+        shell: bash
+        run: npm exec --prefix crates/gui -- tsc -p crates/gui/tsconfig.json --noEmit
+
+      - name: Build frontend
+        shell: bash
+        run: npm run build

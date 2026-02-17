@@ -121,6 +121,18 @@ sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gt
 
 ---
 
+## Release Process
+
+- **Trigger:** GitHub Actions release workflow runs on tag pushes that match `v*` (enforced tag format: `vMAJOR.MINOR.PATCH` with an optional `-<prerelease>` suffix; examples: `v1.4.2`, `v1.5.0-rc.1`).
+- **Version sync guardrail:** Release fails fast unless tag version (including any prerelease suffix) exactly matches all configured versions in `package.json`, `crates/gui/package.json`, `crates/gui/src-tauri/tauri.conf.json`, and `PKGBUILD`.
+- **Prerelease handling:** Prerelease status is derived from the tag by `scripts/detect-release-prerelease.mjs`; prerelease tags (for example `v1.5.0-rc.1`) are published as GitHub prereleases.
+- **Required release assets:** the workflow normalizes the final GitHub release assets to exactly: `kitsune-dm-v{version}-windows-x64.msi`, `kitsune-dm-v{version}-linux-amd64.deb`, `kitsune-dm-v{version}-linux-x86_64.pkg.tar.zst`, plus `PKGBUILD` and `SHA256SUMS` (sha256 checksums for each normalized asset).
+- **Deterministic publish set:** normalized assets are validated so the publish directory and final GitHub release contain exactly those five assets, with no extras.
+- **Idempotent reruns:** rerunning the same tag updates or reuses the release, removes unmanaged old assets, and re-uploads managed assets using overwrite semantics (`gh release upload --clobber`).
+- **Out of scope:** artifact signing and publishing to external package repositories are not performed by this workflow.
+
+---
+
 ## Architecture
 
 The project is a Cargo workspace with a Tauri v2 frontend.

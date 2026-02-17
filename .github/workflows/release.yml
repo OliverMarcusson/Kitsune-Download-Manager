@@ -1,0 +1,549 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20"
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  guardrails:
+    name: Guardrails
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      prerelease: ${{ steps.prerelease.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Capture release tag metadata
+        id: meta
+        shell: bash
+        run: |
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate configured versions against tag
+        shell: bash
+        run: node scripts/validate-release-config-version.mjs "${GITHUB_REF}"
+
+      - name: Detect prerelease from tag
+        id: prerelease
+        shell: bash
+        run: node scripts/detect-release-prerelease.mjs "${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+
+  build_matrix:
+    name: Build Matrix (skeleton)
+    needs: guardrails
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [placeholder]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-
+
+      - name: Placeholder for platform build tasks
+        shell: bash
+        run: |
+          echo "Build skeleton only"
+          echo "tag=${{ needs.guardrails.outputs.tag }}"
+          echo "platform=${{ matrix.platform }}"
+
+  build_windows_msi:
+    name: Build Windows MSI
+    needs: guardrails
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    outputs:
+      msi_output_path: ${{ steps.capture_msi.outputs.msi_output_path }}
+      msi_file_name: ${{ steps.capture_msi.outputs.msi_file_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-
+
+      - name: Install GUI dependencies
+        shell: bash
+        run: npm run install:gui
+
+      - name: Build Windows MSI
+        shell: bash
+        run: npm run build:windows
+
+      - name: Capture MSI output path
+        id: capture_msi
+        shell: pwsh
+        run: |
+          $msiPath = Get-ChildItem -Path "crates/gui/src-tauri/target/release/bundle/msi" -Filter "*.msi" -File -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $msiPath) {
+            Write-Error "No MSI artifact found under crates/gui/src-tauri/target/release/bundle/msi"
+            exit 1
+          }
+          $msiFileName = [System.IO.Path]::GetFileName($msiPath)
+          "msi_output_path=$msiPath" >> $env:GITHUB_OUTPUT
+          "msi_file_name=$msiFileName" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Windows MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msi-raw
+          path: ${{ steps.capture_msi.outputs.msi_output_path }}
+          if-no-files-found: error
+
+  build_linux_deb:
+    name: Build Linux Debian package
+    needs: guardrails
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deb_output_path: ${{ steps.capture_deb.outputs.deb_output_path }}
+      deb_file_name: ${{ steps.capture_deb.outputs.deb_file_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-
+
+      - name: Install Linux system dependencies for Tauri
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install GUI dependencies
+        shell: bash
+        run: npm run install:gui
+
+      - name: Build Linux Debian package
+        shell: bash
+        run: npm run build:linux
+
+      - name: Capture Debian package output path
+        id: capture_deb
+        shell: bash
+        run: |
+          mapfile -t deb_files < <(find crates/gui/src-tauri/target/release/bundle/deb -type f -name "*.deb" | sort)
+          if [ "${#deb_files[@]}" -eq 0 ]; then
+            echo "No Debian artifact found under crates/gui/src-tauri/target/release/bundle/deb" >&2
+            exit 1
+          fi
+          if [ "${#deb_files[@]}" -ne 1 ]; then
+            echo "Expected exactly one Debian artifact, found ${#deb_files[@]}" >&2
+            printf ' - %s\n' "${deb_files[@]}" >&2
+            exit 1
+          fi
+          deb_path="${deb_files[0]}"
+          deb_file_name=$(basename "$deb_path")
+          echo "deb_output_path=$deb_path" >> "$GITHUB_OUTPUT"
+          echo "deb_file_name=$deb_file_name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Linux Debian artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb-raw
+          path: ${{ steps.capture_deb.outputs.deb_output_path }}
+          if-no-files-found: error
+
+  build_linux_arch:
+    name: Build Linux Arch package
+    needs: guardrails
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    permissions:
+      contents: read
+    outputs:
+      arch_pkg_output_path: ${{ steps.capture_arch.outputs.arch_pkg_output_path }}
+      arch_pkg_file_name: ${{ steps.capture_arch.outputs.arch_pkg_file_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Arch system dependencies for makepkg and Tauri
+        shell: bash
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git nodejs npm rustup webkit2gtk-4.1 curl wget openssl appmenu-gtk-module gtk3 libappindicator-gtk3 librsvg libvips
+
+      - name: Setup Rust toolchain
+        shell: bash
+        run: rustup default ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Build Linux Arch package
+        shell: bash
+        run: makepkg --syncdeps --noconfirm --cleanbuild --clean
+
+      - name: Capture Arch package output path
+        id: capture_arch
+        shell: bash
+        run: |
+          mapfile -t arch_pkg_files < <(compgen -G "./*.pkg.tar.zst" | sort)
+          if [ "${#arch_pkg_files[@]}" -eq 0 ]; then
+            echo "No Arch package artifact found under repository root" >&2
+            exit 1
+          fi
+          if [ "${#arch_pkg_files[@]}" -ne 1 ]; then
+            echo "Expected exactly one Arch package artifact, found ${#arch_pkg_files[@]}" >&2
+            printf ' - %s\n' "${arch_pkg_files[@]}" >&2
+            exit 1
+          fi
+          arch_pkg_path="${arch_pkg_files[0]}"
+          arch_pkg_file_name=$(basename "$arch_pkg_path")
+          echo "arch_pkg_output_path=$arch_pkg_path" >> "$GITHUB_OUTPUT"
+          echo "arch_pkg_file_name=$arch_pkg_file_name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Arch PKGBUILD artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-pkgbuild-raw
+          path: PKGBUILD
+          if-no-files-found: error
+
+      - name: Upload Linux Arch package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arch-pkg-tar-zst-raw
+          path: ${{ steps.capture_arch.outputs.arch_pkg_output_path }}
+          if-no-files-found: error
+
+  publish_fan_in:
+    name: Publish raw artifact fan-in
+    needs: [guardrails, build_windows_msi, build_linux_deb, build_linux_arch]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download raw Windows MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-msi-raw
+          path: dist/raw/windows-msi-raw
+
+      - name: Download raw Linux Debian artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-deb-raw
+          path: dist/raw/linux-deb-raw
+
+      - name: Download raw Arch PKGBUILD artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arch-pkgbuild-raw
+          path: dist/raw/arch-pkgbuild-raw
+
+      - name: Download raw Linux Arch package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-arch-pkg-tar-zst-raw
+          path: dist/raw/linux-arch-pkg-tar-zst-raw
+
+      - name: Upload publish fan-in raw artifact set
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-raw-assets-fan-in
+          path: dist/raw
+          if-no-files-found: error
+
+  publish_prepare:
+    name: Publish asset preparation
+    needs: [guardrails, build_matrix, publish_fan_in]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: crates/gui/package-lock.json
+
+      - name: Download publish fan-in raw artifact set
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-raw-assets-fan-in
+          path: dist/raw
+
+      - name: Normalize publish asset filenames and generate SHA256SUMS
+        shell: bash
+        run: node scripts/normalize-release-assets.mjs --tag "${{ needs.guardrails.outputs.tag }}" --input-dir dist/raw --output-dir dist/publish
+
+      - name: Upload normalized publish assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-assets-normalized
+          path: dist/publish
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release assets
+    needs: [guardrails, publish_prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download normalized publish assets
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-assets-normalized
+          path: dist/publish
+
+      - name: Assert required publish assets are present
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          count_pattern() {
+            local pattern="$1"
+            local count
+            count=$(compgen -G "$pattern" | wc -l | tr -d ' ')
+            echo "$count"
+          }
+
+          msi_count=$(count_pattern "dist/publish/*.msi")
+          deb_count=$(count_pattern "dist/publish/*.deb")
+          arch_count=$(count_pattern "dist/publish/*.pkg.tar.zst")
+
+          if [ "$msi_count" -ne 1 ]; then
+            echo "Expected exactly one MSI in dist/publish, found $msi_count" >&2
+            exit 1
+          fi
+
+          if [ "$deb_count" -ne 1 ]; then
+            echo "Expected exactly one Debian package in dist/publish, found $deb_count" >&2
+            exit 1
+          fi
+
+          if [ "$arch_count" -ne 1 ]; then
+            echo "Expected exactly one Arch package in dist/publish, found $arch_count" >&2
+            exit 1
+          fi
+
+          if [ ! -f "dist/publish/PKGBUILD" ]; then
+            echo "Missing PKGBUILD in dist/publish" >&2
+            exit 1
+          fi
+
+          if [ ! -f "dist/publish/SHA256SUMS" ]; then
+            echo "Missing SHA256SUMS in dist/publish" >&2
+            exit 1
+          fi
+
+      - name: Assert publish asset set is deterministic
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t asset_files < <(find dist/publish -maxdepth 1 -type f -printf "%f\n" | sort)
+          expected_assets=(
+            "PKGBUILD"
+            "SHA256SUMS"
+          )
+
+          mapfile -t msi_assets < <(find dist/publish -maxdepth 1 -type f -name "*.msi" -printf "%f\n" | sort)
+          mapfile -t deb_assets < <(find dist/publish -maxdepth 1 -type f -name "*.deb" -printf "%f\n" | sort)
+          mapfile -t arch_assets < <(find dist/publish -maxdepth 1 -type f -name "*.pkg.tar.zst" -printf "%f\n" | sort)
+
+          expected_assets+=("${msi_assets[@]}" "${deb_assets[@]}" "${arch_assets[@]}")
+
+          if [ "${#expected_assets[@]}" -ne 5 ]; then
+            echo "Expected exactly 5 publish assets (PKGBUILD, SHA256SUMS, and one package per platform), found ${#expected_assets[@]}" >&2
+            printf ' - %s\n' "${expected_assets[@]}" >&2
+            exit 1
+          fi
+
+          if [ "${#asset_files[@]}" -ne "${#expected_assets[@]}" ]; then
+            echo "Publish directory has unexpected extra/missing files" >&2
+            printf 'Expected:\n' >&2
+            printf ' - %s\n' "${expected_assets[@]}" >&2
+            printf 'Actual:\n' >&2
+            printf ' - %s\n' "${asset_files[@]}" >&2
+            exit 1
+          fi
+
+          for i in "${!expected_assets[@]}"; do
+            if [ "${expected_assets[$i]}" != "${asset_files[$i]}" ]; then
+              echo "Publish directory mismatch at index $i: expected ${expected_assets[$i]}, got ${asset_files[$i]}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ needs.guardrails.outputs.tag }}"
+          prerelease="${{ needs.guardrails.outputs.prerelease }}"
+          repo="${GITHUB_REPOSITORY}"
+
+          if gh api "/repos/${repo}/releases/tags/${tag}" >/dev/null 2>&1; then
+            release_id=$(gh api "/repos/${repo}/releases/tags/${tag}" --jq ".id")
+            gh api --method PATCH "/repos/${repo}/releases/${release_id}" \
+              -f tag_name="${tag}" \
+              -f name="${tag}" \
+              -F prerelease="${prerelease}" \
+              >/dev/null
+          else
+            gh api --method POST "/repos/${repo}/releases" \
+              -f tag_name="${tag}" \
+              -f name="${tag}" \
+              -F prerelease="${prerelease}" \
+                -F generate_release_notes=true \
+                >/dev/null
+          fi
+
+      - name: Remove unmanaged existing release assets before upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ needs.guardrails.outputs.tag }}"
+          repo="${GITHUB_REPOSITORY}"
+
+          mapfile -t expected_names < <(find dist/publish -maxdepth 1 -type f -printf "%f\n" | sort)
+
+          while IFS=$'\t' read -r asset_name asset_id; do
+            keep_asset=false
+            for expected_name in "${expected_names[@]}"; do
+              if [ "$asset_name" = "$expected_name" ]; then
+                keep_asset=true
+                break
+              fi
+            done
+
+            if [ "$keep_asset" = false ]; then
+              echo "Deleting unmanaged existing release asset: $asset_name"
+              gh api --method DELETE "/repos/${repo}/releases/assets/${asset_id}" >/dev/null
+            fi
+          done < <(gh api "/repos/${repo}/releases/tags/${tag}" --jq '.assets[] | [.name, (.id|tostring)] | @tsv')
+
+      - name: Upload release assets with overwrite semantics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ needs.guardrails.outputs.tag }}"
+          gh release upload "${tag}" dist/publish/* --clobber
+
+      - name: Assert release assets exactly match normalized publish set
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ needs.guardrails.outputs.tag }}"
+          repo="${GITHUB_REPOSITORY}"
+
+          mapfile -t expected_names < <(find dist/publish -maxdepth 1 -type f -printf "%f\n" | sort)
+          mapfile -t release_names < <(gh api "/repos/${repo}/releases/tags/${tag}" --jq '.assets[].name' | sort)
+
+          if [ "${#expected_names[@]}" -ne "${#release_names[@]}" ]; then
+            echo "Release asset count mismatch for ${tag}: expected ${#expected_names[@]}, found ${#release_names[@]}" >&2
+            printf 'Expected:\n' >&2
+            printf ' - %s\n' "${expected_names[@]}" >&2
+            printf 'Actual:\n' >&2
+            printf ' - %s\n' "${release_names[@]}" >&2
+            exit 1
+          fi
+
+          for i in "${!expected_names[@]}"; do
+            if [ "${expected_names[$i]}" != "${release_names[$i]}" ]; then
+              echo "Release asset mismatch at index $i: expected ${expected_names[$i]}, got ${release_names[$i]}" >&2
+              exit 1
+            fi
+          done

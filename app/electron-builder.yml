@@ -10,10 +10,21 @@ files:
   - package.json
 
 # The Rust engine rides along as a sidecar binary. Sidecar.resolveBinary() looks
-# for it directly in resourcesPath.
+# for it directly in resourcesPath. The native-messaging pieces ship here too so
+# the install hook can generate a manifest pointing at the real shim path.
 extraResources:
   - from: ../target/release/kitsune-daemon
     to: kitsune-daemon
+  - from: ../target/release/kitsune-shim
+    to: kitsune-shim
+  - from: ../target/release/native-host-manifest
+    to: native-host-manifest
+  - from: ../scripts/linux/self-heal-native-host.sh
+    to: self-heal-native-host
+  - from: ../scripts/linux/native-host-status.sh
+    to: native-host-status
+  - from: ../extension/extension_id_source.txt
+    to: extension_id_source.txt
   - from: resources/icon.png
     to: icon.png
 
@@ -39,6 +50,8 @@ linux:
       StartupWMClass: kitsune-download-manager
 
 deb:
+  afterInstall: build/linux-after-install.sh
+  afterRemove: build/linux-after-remove.sh
   depends:
     - libgtk-3-0
     - libnotify4
@@ -48,6 +61,15 @@ deb:
     - xdg-utils
     - libatspi2.0-0
     - libsecret-1-0
+
+pacman:
+  afterInstall: build/linux-after-install.sh
+  afterRemove: build/linux-after-remove.sh
+  # electron-builder emits no post_upgrade, but that is the function pacman runs
+  # when replacing an installed package, so pass one to fpm directly.
+  fpm:
+    - --after-upgrade
+    - build/linux-after-upgrade.sh
 
 win:
   target:

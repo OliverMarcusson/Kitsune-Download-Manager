@@ -3,16 +3,20 @@
   "version": "0.1.0",
   "description": "Kitsune Download Manager desktop app",
   "main": "./out/main/index.js",
-  "author": "Oliver Marcusson",
+  "author": {
+    "name": "Oliver Marcusson",
+    "email": "oliver@marcusson.dev"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && electron-vite build",
     "start": "electron-vite preview",
-    "pack:dir": "npm run build && electron-builder --dir",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "dist:win": "npm run build && electron-builder --win"
+    "pack:dir": "npm run build:rust && npm run build && electron-builder --dir",
+    "dist:linux": "npm run build:rust && npm run build && electron-builder --linux",
+    "dist:win": "npm run build:rust && npm run build && electron-builder --win",
+    "build:rust": "cargo build --release --manifest-path ../Cargo.toml -p kitsune-daemon -p kitsune-shim && cargo build --release --manifest-path ../Cargo.toml -p kitsune-cli --bin native-host-manifest"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",
@@ -39,5 +43,6 @@
   },
   "allowScripts": {
     "electron@43.3.0": true
-  }
+  },
+  "homepage": "https://github.com/OliverMarcusson/Kitsune-Download-Manager"
 }

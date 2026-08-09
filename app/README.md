@@ -55,16 +55,51 @@ Set `KITSUNE_DAEMON_PATH` to point at a daemon binary somewhere else.
 ## Packaging
 
 ```bash
-npm run app:dist:linux    # deb, pacman, AppImage
+npm run app:dist:linux    # deb, pacman, AppImage — runs the cargo build first
 ```
 
-`electron-builder.yml` copies the daemon binary into `resources/`.
+`electron-builder.yml` copies the daemon, the shim, the manifest generator and
+the extension ID into `resources/`, which lands at
+`/opt/Kitsune Download Manager/resources` for deb and pacman.
+
+### Install hooks
+
+`build/linux-after-install.sh` and `build/linux-after-remove.sh` register and
+unregister the Chromium native messaging host. The manifest embeds the shim's
+absolute path, so it is generated on the target machine rather than shipped.
+Failures are non-fatal: the app works without browser integration.
+
+Three things to know before editing them:
+
+1. **Setting `afterInstall` REPLACES electron-builder's default template**, it
+   does not extend it. The top half of each hook is a verbatim copy of
+   `app-builder-lib/templates/linux/after-{install,remove}.tpl`. Drop it and you
+   silently lose the `/usr/bin` symlink, the `chrome-sandbox` permissions and
+   the AppArmor profile that Ubuntu 24+ needs. Re-sync on electron-builder
+   upgrades.
+2. **`${...}` is substituted at build time** and an undefined macro aborts the
+   build — `${sanitizedProductName}` and `${executable}` are provided, but a
+   shell variable like `${RESOURCES}` would be treated as a macro and fail.
+   Local variables therefore use underscored names.
+3. **pacman needs `post_upgrade`, which electron-builder never emits.** pacman
+   calls it instead of `post_install` when replacing a package, so
+   `build/linux-after-upgrade.sh` is passed straight to fpm via `pacman.fpm`.
+   Because fpm gets it directly it receives no macro substitution and hardcodes
+   the product name and executable — keep those in sync.
 
 ## Parity status
 
 Done: download start/cancel/resume, progress and speed, metadata lookup, state
 persistence, tray with show/quit, close-to-tray, single instance, `kitsune://`
-deep links, the shim socket, folder reveal, file deletion.
+deep links, the shim socket, folder reveal, file deletion, and the Linux
+deb/pacman native-host install hooks.
 
-Not done yet: the Windows MSI registry fragment and the Debian/Arch native-host
-install hooks still target the Tauri layout, and CI does not build this app.
+Not done yet:
+
+- The Windows NSIS build registers no native messaging host. The Tauri MSI did
+  this with a WiX registry fragment, which NSIS cannot reuse; it needs an
+  installer script writing `HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm`.
+- CI does not build this app.
+- The package is still named `kitsune-dm-app` so it can coexist with the
+  installed `kitsune-dm`. Renaming it at cutover will make it replace the Tauri
+  package.

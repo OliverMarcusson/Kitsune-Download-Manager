@@ -9,26 +9,31 @@ files:
   - out/**
   - package.json
 
-# The Rust engine rides along as a sidecar binary. Sidecar.resolveBinary() looks
-# for it directly in resourcesPath. The native-messaging pieces ship here too so
-# the install hook can generate a manifest pointing at the real shim path.
-extraResources:
-  - from: ../target/release/kitsune-daemon
-    to: kitsune-daemon
-  - from: ../target/release/kitsune-shim
-    to: kitsune-shim
-  - from: ../target/release/native-host-manifest
-    to: native-host-manifest
-  - from: ../scripts/linux/self-heal-native-host.sh
-    to: self-heal-native-host
-  - from: ../scripts/linux/native-host-status.sh
-    to: native-host-status
-  - from: ../extension/extension_id_source.txt
-    to: extension_id_source.txt
-  - from: resources/icon.png
-    to: icon.png
+# extraResources is declared per-platform, never at the top level: a
+# platform-specific list is MERGED with the top-level one rather than replacing
+# it, which shipped the Linux ELF binaries and shell scripts inside the Windows
+# installer.
+#
+# The Rust engine rides along as a sidecar binary; Sidecar.resolveBinary() looks
+# for it directly in resourcesPath. The native-messaging pieces ship beside it so
+# the install hooks can generate a manifest pointing at the real shim path.
 
 linux:
+  extraResources:
+    - from: ../target/release/kitsune-daemon
+      to: kitsune-daemon
+    - from: ../target/release/kitsune-shim
+      to: kitsune-shim
+    - from: ../target/release/native-host-manifest
+      to: native-host-manifest
+    - from: ../scripts/linux/self-heal-native-host.sh
+      to: self-heal-native-host
+    - from: ../scripts/linux/native-host-status.sh
+      to: native-host-status
+    - from: ../extension/extension_id_source.txt
+      to: extension_id_source.txt
+    - from: resources/icon.png
+      to: icon.png
   target:
     - deb
     - pacman
@@ -75,8 +80,24 @@ win:
   target:
     - nsis
   icon: resources/icon.png
+  # Windows needs .exe binaries; the self-heal / status shell scripts are
+  # Linux-only. Built natively on a Windows runner, so this is target/release
+  # rather than a cross-compile triple.
+  extraResources:
+    - from: ../target/release/kitsune-daemon.exe
+      to: kitsune-daemon.exe
+    - from: ../target/release/kitsune-shim.exe
+      to: kitsune-shim.exe
+    - from: ../target/release/native-host-manifest.exe
+      to: native-host-manifest.exe
+    - from: ../extension/extension_id_source.txt
+      to: extension_id_source.txt
+    - from: resources/icon.png
+      to: icon.png
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false
+  # Registers the native messaging host; see build/installer.nsh.
+  include: build/installer.nsh

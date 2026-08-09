@@ -87,19 +87,36 @@ Three things to know before editing them:
    Because fpm gets it directly it receives no macro substitution and hardcodes
    the product name and executable — keep those in sync.
 
+### Windows
+
+`build/installer.nsh` provides `customInstall` / `customUnInstall`, which
+electron-builder appends to its own sections — unlike the Linux hooks, these
+extend rather than replace. It generates the manifest and writes
+`HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm` for Chrome, Chromium and
+Edge.
+
+The manifest is generated at install time rather than shipped. The Tauri MSI
+shipped one hardcoded to `C:\Program Files\Kitsune Download Manager\...`, which
+pointed at nothing whenever the user chose a different directory —
+`allowToChangeInstallationDirectory` is on.
+
+**The Windows installer cannot be built on Linux.** electron-builder runs
+`rcedit` under wine to stamp exe metadata, and its bundled `makensis.exe` is a
+Windows binary. Build it on Windows (or CI), where `npm run dist:win` also picks
+up `target/release/*.exe` from a native cargo build.
+
 ## Parity status
 
 Done: download start/cancel/resume, progress and speed, metadata lookup, state
 persistence, tray with show/quit, close-to-tray, single instance, `kitsune://`
-deep links, the shim socket, folder reveal, file deletion, and the Linux
-deb/pacman native-host install hooks.
+deep links, the shim socket, folder reveal, file deletion, and the native-host
+install hooks for deb, pacman and NSIS.
 
 Not done yet:
 
-- The Windows NSIS build registers no native messaging host. The Tauri MSI did
-  this with a WiX registry fragment, which NSIS cannot reuse; it needs an
-  installer script writing `HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm`.
-- CI does not build this app.
+- CI does not build this app, which also means `build/installer.nsh` has never
+  been through a real NSIS compile — it is wired in and its inputs are verified,
+  but the script itself is untested. Build it on Windows before trusting it.
 - The package is still named `kitsune-dm-app` so it can coexist with the
   installed `kitsune-dm`. Renaming it at cutover will make it replace the Tauri
   package.

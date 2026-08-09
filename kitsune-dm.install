@@ -21,6 +21,8 @@ _kitsune_register_native_host() {
     "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
     "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
     "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+    # Brave is listed as supported in the README but was never registered.
+    "${KITSUNE_DM_TARGET_DIR_BRAVE:-/etc/brave/native-messaging-hosts}"
   )
 
   if [[ ! -s "${ext_id_file}" ]]; then
@@ -61,6 +63,8 @@ _kitsune_unregister_native_host() {
     "${KITSUNE_DM_TARGET_DIR_CHROMIUM:-/etc/chromium/native-messaging-hosts}"
     "${KITSUNE_DM_TARGET_DIR_CHROME:-/etc/opt/chrome/native-messaging-hosts}"
     "${KITSUNE_DM_TARGET_DIR_EDGE:-/etc/opt/edge/native-messaging-hosts}"
+    # Brave is listed as supported in the README but was never registered.
+    "${KITSUNE_DM_TARGET_DIR_BRAVE:-/etc/brave/native-messaging-hosts}"
   )
 
   for target_dir in "${target_dirs[@]}"; do

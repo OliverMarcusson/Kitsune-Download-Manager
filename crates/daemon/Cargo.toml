@@ -1,0 +1,15 @@
+[package]
+name = "kitsune-daemon"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "kitsune-daemon"
+path = "src/main.rs"
+
+[dependencies]
+kitsune-core = { path = "../core" }
+anyhow = "1.0.101"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.49.0", features = ["full"] }

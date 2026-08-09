@@ -8,7 +8,11 @@
     "tauri": "npm run tauri --prefix crates/gui",
     "build:windows": "npm run build:windows --prefix crates/gui",
     "build:linux": "npm run build:linux --prefix crates/gui",
-    "install:gui": "npm install --prefix crates/gui"
+    "install:gui": "npm install --prefix crates/gui",
+    "install:app": "npm install --prefix app",
+    "app:dev": "npm run dev --prefix app",
+    "app:build": "npm run build --prefix app",
+    "app:dist:linux": "npm run dist:linux --prefix app"
   },
   "workspaces": [
     "crates/gui"

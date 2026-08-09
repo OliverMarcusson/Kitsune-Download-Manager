@@ -2113,6 +2113,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kitsune-daemon"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "kitsune-core",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "kitsune-gui"
 version = "0.1.0"
 dependencies = [

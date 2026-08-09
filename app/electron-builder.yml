@@ -1,0 +1,60 @@
+appId: com.kitsune.dm
+productName: Kitsune Download Manager
+copyright: Copyright © 2026 Oliver Marcusson
+directories:
+  output: dist
+  buildResources: resources
+
+files:
+  - out/**
+  - package.json
+
+# The Rust engine rides along as a sidecar binary. Sidecar.resolveBinary() looks
+# for it directly in resourcesPath.
+extraResources:
+  - from: ../target/release/kitsune-daemon
+    to: kitsune-daemon
+  - from: resources/icon.png
+    to: icon.png
+
+linux:
+  target:
+    - deb
+    - pacman
+    - AppImage
+  category: Network
+  icon: resources/icons
+  synopsis: The blazingly fast IDM alternative
+  description: >-
+    Kitsune is a cross-platform download manager focused on native performance
+    and seamless browser integration, pairing a Rust download engine with an
+    Electron desktop app.
+  desktop:
+    entry:
+      Name: Kitsune Download Manager
+      GenericName: Download Manager
+      Categories: Network;FileTransfer;
+      Keywords: download;manager;idm;kitsune;
+      MimeType: x-scheme-handler/kitsune;
+      StartupWMClass: kitsune-download-manager
+
+deb:
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libsecret-1-0
+
+win:
+  target:
+    - nsis
+  icon: resources/icon.png
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false

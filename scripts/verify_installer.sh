@@ -4,7 +4,7 @@ set -eu
 HOST_NAME="com.kitsune.dm"
 DEBIAN_INSTALL_ROOT_DEFAULT="/usr/lib/Kitsune Download Manager"
 ARCH_INSTALL_ROOT_DEFAULT="/usr/lib/kitsune-dm"
-DEBIAN_TARGET_DIRS_DEFAULT="/etc/opt/chrome/native-messaging-hosts /etc/chromium/native-messaging-hosts /etc/chromium-browser/native-messaging-hosts /etc/opt/edge/native-messaging-hosts /etc/opt/brave.com/brave/native-messaging-hosts"
+DEBIAN_TARGET_DIRS_DEFAULT="/etc/opt/chrome/native-messaging-hosts /etc/chromium/native-messaging-hosts /etc/chromium-browser/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 ARCH_TARGET_DIRS_DEFAULT="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 APP_BIN_CANDIDATES_DEFAULT="/usr/bin/kitsune-gui /usr/bin/kitsune-download-manager"
 

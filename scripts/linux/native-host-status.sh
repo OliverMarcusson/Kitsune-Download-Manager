@@ -39,13 +39,13 @@ EXT_ID_FILE=$(detect_path "${KITSUNE_DM_EXT_ID_FILE:-}" "$SCRIPT_DIR/../extensio
 if [ -n "${KITSUNE_DM_TARGET_DIRS:-}" ]; then
   TARGET_DIRS="$KITSUNE_DM_TARGET_DIRS"
 elif [ "${KITSUNE_DM_EXPECT_SCOPE:-}" = "system" ]; then
-  TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts /etc/brave/native-messaging-hosts"
+  TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 elif [ "${KITSUNE_DM_EXPECT_SCOPE:-}" = "user" ]; then
-  TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
+  TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
 elif [ "${SHIM_PATH#"/usr/lib/"}" != "$SHIM_PATH" ]; then
-  TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts /etc/brave/native-messaging-hosts"
+  TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 else
-  TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
+  TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
 fi
 
 echo "app_path=$APP_PATH"

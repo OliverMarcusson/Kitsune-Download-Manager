@@ -12,9 +12,6 @@
         <RegistryKey Root="HKCU" Key="Software\Microsoft\Edge\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
           <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" />
         </RegistryKey>
-        <RegistryKey Root="HKCU" Key="Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.kitsune.dm" Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLDIR]installer\native-host\com.kitsune.dm.json" />
-        </RegistryKey>
       </Component>
     </DirectoryRef>
   </Fragment>

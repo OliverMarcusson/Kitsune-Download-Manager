@@ -103,7 +103,6 @@ if ([string]::IsNullOrWhiteSpace($AppBinaryPath)) {
 $RegistryKeys = @(
     'HKCU:\Software\Google\Chrome\NativeMessagingHosts\com.kitsune.dm',
     'HKCU:\Software\Chromium\NativeMessagingHosts\com.kitsune.dm',
-    'HKCU:\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.kitsune.dm',
     'HKCU:\Software\Microsoft\Edge\NativeMessagingHosts\com.kitsune.dm'
 )
 

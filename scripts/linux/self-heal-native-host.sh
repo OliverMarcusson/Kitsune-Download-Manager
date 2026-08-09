@@ -10,7 +10,7 @@ if [ -z "${HOME:-}" ]; then
   exit 1
 fi
 
-TARGET_DIRS="${KITSUNE_DM_USER_TARGET_DIR_BRAVE:-$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts} ${KITSUNE_DM_USER_TARGET_DIR_CHROMIUM:-$HOME/.config/chromium/NativeMessagingHosts}"
+TARGET_DIRS="${KITSUNE_DM_USER_TARGET_DIR_CHROMIUM:-$HOME/.config/chromium/NativeMessagingHosts}"
 
 MANIFEST_GENERATOR="${KITSUNE_DM_MANIFEST_GENERATOR:-}"
 if [ -z "$MANIFEST_GENERATOR" ]; then
@@ -85,7 +85,7 @@ for target_dir in $TARGET_DIRS; do
 done
 
 if [ "$missing_target" -eq 0 ]; then
-  echo "[kitsune-dm self-heal] manifests already present for Brave/Chromium"
+  echo "[kitsune-dm self-heal] manifests already present for Chromium"
   exit 0
 fi
 

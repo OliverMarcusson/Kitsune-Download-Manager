@@ -37,7 +37,7 @@ esac
 
 MANIFEST_CONTENT="$("$MANIFEST_BIN" --extension-id "$EXT_ID" --executable-path "$SHIM_BIN")"
 
-TARGET_DIRS="/etc/opt/chrome/native-messaging-hosts /etc/chromium/native-messaging-hosts /etc/chromium-browser/native-messaging-hosts /etc/opt/edge/native-messaging-hosts /etc/opt/brave.com/brave/native-messaging-hosts"
+TARGET_DIRS="/etc/opt/chrome/native-messaging-hosts /etc/chromium/native-messaging-hosts /etc/chromium-browser/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 
 for target_dir in $TARGET_DIRS; do
   mkdir -p "$target_dir"

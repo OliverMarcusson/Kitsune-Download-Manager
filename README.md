@@ -20,7 +20,7 @@
 ## Highlights
 
 - **Native performance** with Rust (`kitsune-core`) for efficient I/O and concurrency.
-- **Direct browser integration** via Native Messaging for Chromium, Chrome, Edge, and Brave.
+- **Direct browser integration** via Native Messaging for Chromium, Chrome, and Edge.
 - **Cross-platform installers** for Linux (`.deb` and Arch-ready) and Windows (MSI).
 - **Smart setup** that registers native host manifests automatically during installation.
 - **Deep-link support** for `kitsune://` protocol triggers.

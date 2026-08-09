@@ -34,7 +34,6 @@ echo "Creating Native Messaging Host manifest..."
 TARGET_DIRS=(
   "$HOME/.config/google-chrome/NativeMessagingHosts"
   "$HOME/.config/chromium/NativeMessagingHosts"
-  "$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts"
 )
 
 if [ -n "${KITSUNE_DM_TARGET_DIRS:-}" ]; then

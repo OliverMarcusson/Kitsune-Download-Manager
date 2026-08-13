@@ -172,13 +172,13 @@ jobs:
             ${{ runner.os }}-cargo-${{ env.RUST_TOOLCHAIN }}-
 
       # electron-builder shells out to dpkg for deb and needs fakeroot for both
-      # deb and pacman. No GTK/WebKit dev packages: Electron ships its own
-      # Chromium, which is the whole reason the Tauri build was replaced.
+      # deb and pacman; fpm needs bsdtar from libarchive-tools for pacman.
+      # No GTK/WebKit dev packages: Electron ships its own Chromium.
       - name: Install packaging dependencies
         shell: bash
         run: |
           sudo apt update
-          sudo apt install -y fakeroot dpkg
+          sudo apt install -y fakeroot dpkg libarchive-tools
 
       - name: Install app dependencies
         shell: bash

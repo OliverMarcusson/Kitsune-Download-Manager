@@ -19,6 +19,7 @@ files:
 # the install hooks can generate a manifest pointing at the real shim path.
 
 linux:
+  syncDesktopName: true
   extraResources:
     - from: ../target/release/kitsune-daemon
       to: kitsune-daemon

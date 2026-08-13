@@ -2,6 +2,7 @@
   "name": "kitsune-dm",
   "version": "0.2.0",
   "description": "Kitsune Download Manager desktop app",
+  "desktopName": "kitsune-dm",
   "main": "./out/main/index.js",
   "author": {
     "name": "Oliver Marcusson",

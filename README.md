@@ -34,6 +34,7 @@
 <img src="extension/icons/linux_icon.png" alt="Linux icon" width="48" />
 
 #### Debian / Ubuntu / Mint
+
 Download the `.deb` package and install it. Post-install scripts handle browser host registration.
 
 ```bash
@@ -41,6 +42,7 @@ sudo apt install ./Kitsune_Download_Manager_0.1.0_amd64.deb
 ```
 
 #### Arch Linux / Manjaro
+
 Download the `.pkg.tar.zst` package and install it. Install hooks generate and register manifests automatically.
 
 ```bash
@@ -68,22 +70,25 @@ sudo pacman -U kitsune-dm-v0.1.0-linux-x86_64.pkg.tar.zst
 ### Prerequisites
 
 #### General
+
 - **Rust**: `rustup` (stable)
 - **Node.js**: v18+ (managed via `npm`)
 
 #### Linux
+
 Electron ships its own Chromium, so no WebKit or GTK development packages are
 needed. Packaging the `.deb` and `.pkg.tar.zst` locally needs:
 
 ```bash
 # Debian / Ubuntu
-sudo apt install build-essential fakeroot dpkg
+sudo apt install build-essential fakeroot dpkg libarchive-tools
 
 # Arch Linux
 sudo pacman -S base-devel fakeroot
 ```
 
 #### Windows
+
 No extra tooling. electron-builder downloads NSIS itself.
 
 > **Note:** the Windows installer cannot be built on Linux — electron-builder
@@ -93,22 +98,26 @@ No extra tooling. electron-builder downloads NSIS itself.
 ### Build
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/OliverMarcusson/Kitsune-Download-Manager.git
    cd Kitsune-Download-Manager
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm run install:app
    ```
 
 3. **Build the Rust sidecar** (the app will not start without it):
+
    ```bash
    npm run build:rust
    ```
 
 4. **Run development mode:**
+
    ```bash
    npm run dev
    ```
@@ -116,11 +125,13 @@ No extra tooling. electron-builder downloads NSIS itself.
 5. **Build production packages:**
 
    **Linux (deb, pacman, AppImage):**
+
    ```bash
    npm run dist:linux
    ```
 
    **Windows (NSIS installer):**
+
    ```bash
    npm run dist:win
    ```
@@ -148,7 +159,7 @@ sidecar process; Electron's main process talks to it over newline-delimited JSON
 on stdio. See [app/README.md](app/README.md) for the details.
 
 | Component | Path | Description |
-|-----------|------|-------------|
+| ----------- | ------ | ------------- |
 | **kitsune-core** | `crates/core` | Shared business logic, download engine, and session management. |
 | **kitsune-daemon** | `crates/daemon` | Sidecar process wrapping `kitsune-core` behind a JSON stdio protocol. |
 | **kitsune-shim** | `crates/shim` | Native messaging host that receives browser messages on `stdio` and forwards them via IPC. |

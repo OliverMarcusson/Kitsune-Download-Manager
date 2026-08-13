@@ -173,10 +173,10 @@ async fn handle(request: Request, state: Arc<State>, writer: Writer) {
         },
 
         Command::CancelDownload { download_id } => {
-            if let Ok(flags) = state.cancel_flags.lock() {
-                if let Some(flag) = flags.get(&download_id) {
-                    flag.store(true, Ordering::Relaxed);
-                }
+            if let Ok(flags) = state.cancel_flags.lock()
+                && let Some(flag) = flags.get(&download_id)
+            {
+                flag.store(true, Ordering::Relaxed);
             }
             let _ = writer.send(Outgoing::Ok {
                 id,

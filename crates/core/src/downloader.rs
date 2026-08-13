@@ -60,7 +60,7 @@ impl Downloader {
         let total_size = headers
             .get(header::CONTENT_RANGE)
             .and_then(|val| val.to_str().ok())
-            .and_then(|val| val.split('/').last())
+            .and_then(|val| val.split('/').next_back())
             .and_then(|val| val.parse::<u64>().ok())
             .or_else(|| {
                 headers
@@ -94,7 +94,7 @@ impl Downloader {
 
         let filename = filename_from_header.unwrap_or_else(|| {
             url.split('/')
-                .last()
+                .next_back()
                 .map(|s| s.split('?').next().unwrap_or(s))
                 .filter(|s| !s.is_empty())
                 .unwrap_or("download.bin")
@@ -221,10 +221,10 @@ impl Downloader {
         
         loop {
             // Check cancellation
-            if let Some(ref flag) = cancel_flag {
-                if flag.load(Ordering::Relaxed) {
-                    return Err(anyhow::anyhow!("cancelled"));
-                }
+            if let Some(ref flag) = cancel_flag
+                && flag.load(Ordering::Relaxed)
+            {
+                return Err(anyhow::anyhow!("cancelled"));
             }
 
             // Check for completion
@@ -259,14 +259,14 @@ impl Downloader {
                     pending_bytes += bytes;
 
                     // Forward to UI only if 50ms elapsed or worker completed
-                    if let Some(obs) = &observer {
-                        if status == 1 || last_ui_update.elapsed() >= Duration::from_millis(50) {
-                            let active_count = session.parts.iter().filter(|p| !p.completed).count();
-                            // Use pending_bytes
-                            obs.on_progress(worker_id, pending_bytes, active_count);
-                            pending_bytes = 0;
-                            last_ui_update = Instant::now();
-                        }
+                    if let Some(obs) = &observer
+                        && (status == 1 || last_ui_update.elapsed() >= Duration::from_millis(50))
+                    {
+                        let active_count = session.parts.iter().filter(|p| !p.completed).count();
+                        // Use pending_bytes
+                        obs.on_progress(worker_id, pending_bytes, active_count);
+                        pending_bytes = 0;
+                        last_ui_update = Instant::now();
                     }
                     
                     // Work-stealing: if this worker just completed, help the slowest worker
@@ -345,20 +345,20 @@ impl Downloader {
             }
             
             // Periodically save
-            if let Some(path) = &session_file {
-                 if last_save.elapsed().as_secs() >= 1 {
-                     let _ = session.save(path).await;
-                     last_save = std::time::Instant::now();
-                 }
+            if let Some(path) = &session_file
+                && last_save.elapsed().as_secs() >= 1
+            {
+                let _ = session.save(path).await;
+                last_save = std::time::Instant::now();
             }
         }
 
         // Flush any remaining accumulated bytes to UI
-        if pending_bytes > 0 {
-            if let Some(obs) = &observer {
-                let active_count = session.parts.iter().filter(|p| !p.completed).count();
-                obs.on_progress(0, pending_bytes, active_count);
-            }
+        if pending_bytes > 0
+            && let Some(obs) = &observer
+        {
+            let active_count = session.parts.iter().filter(|p| !p.completed).count();
+            obs.on_progress(0, pending_bytes, active_count);
         }
 
         session.state = DownloadState::Completed;

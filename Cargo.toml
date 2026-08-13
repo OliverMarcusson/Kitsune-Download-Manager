@@ -5,5 +5,4 @@ members = [
     "crates/core",
     "crates/daemon",
     "crates/shim",
-    "crates/gui/src-tauri",
 ]

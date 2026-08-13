@@ -10,11 +10,11 @@
 #
 # Unlike the install/remove hooks this file is passed straight to fpm, so it
 # gets NO `${...}` macro substitution — the product name and executable are
-# spelled out. Keep them in sync with productName in electron-builder.yml and
-# name in package.json.
+# spelled out. Keep them in sync with productName and linux.executableName in
+# electron-builder.yml.
 
 kitsune_app_dir='/opt/Kitsune Download Manager'
-kitsune_executable='kitsune-dm-app'
+kitsune_executable='kitsune-dm'
 kitsune_resources="$kitsune_app_dir/resources"
 kitsune_host_name="com.kitsune.dm"
 

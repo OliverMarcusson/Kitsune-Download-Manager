@@ -31,10 +31,15 @@ detect_path() {
   fi
 }
 
-APP_PATH=$(detect_path "${KITSUNE_DM_APP_PATH:-}" "$SCRIPT_DIR/kitsune-gui" "/usr/bin/kitsune-gui" "/usr/local/bin/kitsune-gui" "$REPO_ROOT/target/release/kitsune-gui")
-SHIM_PATH=$(detect_path "${KITSUNE_DM_SHIM_PATH:-}" "$SCRIPT_DIR/kitsune-shim" "/usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim" "/usr/lib/kitsune-dm/installer/bin/kitsune-shim" "$REPO_ROOT/target/release/kitsune-shim")
-MANIFEST_GENERATOR=$(detect_path "${KITSUNE_DM_MANIFEST_GENERATOR:-}" "$SCRIPT_DIR/native-host-manifest" "/usr/lib/Kitsune Download Manager/installer/bin/native-host-manifest" "/usr/lib/kitsune-dm/installer/bin/native-host-manifest" "$REPO_ROOT/target/release/native-host-manifest")
-EXT_ID_FILE=$(detect_path "${KITSUNE_DM_EXT_ID_FILE:-}" "$SCRIPT_DIR/../extension_id_source.txt" "/usr/lib/Kitsune Download Manager/installer/extension_id_source.txt" "/usr/lib/kitsune-dm/installer/extension_id_source.txt" "$REPO_ROOT/extension/extension_id_source.txt")
+# Installed layout is electron-builder's: this script ships in
+# /opt/<productName>/resources alongside the shim, the manifest generator and
+# the extension ID, with the app binary one level up and symlinked into
+# /usr/bin. The final argument is the repo checkout, used when running from a
+# source tree.
+APP_PATH=$(detect_path "${KITSUNE_DM_APP_PATH:-}" "$SCRIPT_DIR/../kitsune-dm" "/usr/bin/kitsune-dm" "/usr/local/bin/kitsune-dm" "$REPO_ROOT/app/dist/linux-unpacked/kitsune-dm")
+SHIM_PATH=$(detect_path "${KITSUNE_DM_SHIM_PATH:-}" "$SCRIPT_DIR/kitsune-shim" "/opt/Kitsune Download Manager/resources/kitsune-shim" "/usr/lib/kitsune-dm/kitsune-shim" "$REPO_ROOT/target/release/kitsune-shim")
+MANIFEST_GENERATOR=$(detect_path "${KITSUNE_DM_MANIFEST_GENERATOR:-}" "$SCRIPT_DIR/native-host-manifest" "/opt/Kitsune Download Manager/resources/native-host-manifest" "/usr/lib/kitsune-dm/native-host-manifest" "$REPO_ROOT/target/release/native-host-manifest")
+EXT_ID_FILE=$(detect_path "${KITSUNE_DM_EXT_ID_FILE:-}" "$SCRIPT_DIR/extension_id_source.txt" "/opt/Kitsune Download Manager/resources/extension_id_source.txt" "/usr/lib/kitsune-dm/extension_id_source.txt" "$REPO_ROOT/extension/extension_id_source.txt")
 
 if [ -n "${KITSUNE_DM_TARGET_DIRS:-}" ]; then
   TARGET_DIRS="$KITSUNE_DM_TARGET_DIRS"
@@ -42,7 +47,7 @@ elif [ "${KITSUNE_DM_EXPECT_SCOPE:-}" = "system" ]; then
   TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 elif [ "${KITSUNE_DM_EXPECT_SCOPE:-}" = "user" ]; then
   TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
-elif [ "${SHIM_PATH#"/usr/lib/"}" != "$SHIM_PATH" ]; then
+elif [ "${SHIM_PATH#"/opt/"}" != "$SHIM_PATH" ] || [ "${SHIM_PATH#"/usr/lib/"}" != "$SHIM_PATH" ]; then
   TARGET_DIRS="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 else
   TARGET_DIRS="$HOME/.config/chromium/NativeMessagingHosts $HOME/.config/google-chrome/NativeMessagingHosts"
@@ -99,7 +104,9 @@ case "$EXT_ID" in
     ;;
 esac
 
-EXPECTED_MANIFEST=$($MANIFEST_GENERATOR --extension-id "$EXT_ID" --executable-path "$SHIM_PATH")
+# Quoted: the installed path is /opt/Kitsune Download Manager/..., and an
+# unquoted expansion word-splits on those spaces.
+EXPECTED_MANIFEST=$("$MANIFEST_GENERATOR" --extension-id "$EXT_ID" --executable-path "$SHIM_PATH")
 missing_registration=0
 stale_registration=0
 

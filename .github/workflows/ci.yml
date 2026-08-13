@@ -72,16 +72,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: crates/gui/package-lock.json
+          cache-dependency-path: app/package-lock.json
 
-      - name: Install GUI dependencies
+      - name: Install app dependencies
         shell: bash
-        run: npm run install:gui
+        working-directory: app
+        run: npm ci
 
-      - name: Type check frontend
+      # `npm run build` type checks main, preload and renderer, then runs
+      # electron-vite build. No Rust or Electron binary is needed for this.
+      - name: Type check and build renderer
         shell: bash
-        run: npm exec --prefix crates/gui -- tsc -p crates/gui/tsconfig.json --noEmit
-
-      - name: Build frontend
-        shell: bash
+        working-directory: app
         run: npm run build

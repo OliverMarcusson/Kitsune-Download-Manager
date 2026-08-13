@@ -343,13 +343,13 @@ function main() {
   }
 
   const wildcardCounts = {
-    msi: actualAssetNames.filter((name) => name.endsWith(".msi")).length,
+    exe: actualAssetNames.filter((name) => name.endsWith(".exe")).length,
     deb: actualAssetNames.filter((name) => name.endsWith(".deb")).length,
     arch: actualAssetNames.filter((name) => name.endsWith(".pkg.tar.zst")).length,
   };
 
-  if (wildcardCounts.msi !== 1) {
-    errors.push(`expected exactly one .msi asset, found ${wildcardCounts.msi}`);
+  if (wildcardCounts.exe !== 1) {
+    errors.push(`expected exactly one .exe asset, found ${wildcardCounts.exe}`);
   }
   if (wildcardCounts.deb !== 1) {
     errors.push(`expected exactly one .deb asset, found ${wildcardCounts.deb}`);
@@ -358,9 +358,6 @@ function main() {
     errors.push(`expected exactly one .pkg.tar.zst asset, found ${wildcardCounts.arch}`);
   }
 
-  if (!actualAssetNames.includes("PKGBUILD")) {
-    errors.push("missing PKGBUILD asset");
-  }
   if (!actualAssetNames.includes("SHA256SUMS")) {
     errors.push("missing SHA256SUMS asset");
   }

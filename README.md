@@ -11,17 +11,17 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6feb.svg" alt="License" /></a>
   <img src="https://img.shields.io/badge/built%20with-Rust-f74c00.svg" alt="Rust" />
-  <img src="https://img.shields.io/badge/frontend-Tauri%20v2-3b82f6.svg" alt="Tauri" />
+  <img src="https://img.shields.io/badge/frontend-Electron-47848f.svg" alt="Electron" />
   <img src="https://img.shields.io/badge/ui-React%20TypeScript-149eca.svg" alt="React" />
 </p>
 
-**Kitsune** is a cross-platform download manager focused on native performance and seamless browser integration. It combines a Rust-powered core with a Tauri desktop app and a browser extension bridge.
+**Kitsune** is a cross-platform download manager focused on native performance and seamless browser integration. It pairs a Rust download engine, running as a sidecar process, with an Electron desktop app and a browser extension bridge.
 
 ## Highlights
 
 - **Native performance** with Rust (`kitsune-core`) for efficient I/O and concurrency.
 - **Direct browser integration** via Native Messaging for Chromium, Chrome, and Edge.
-- **Cross-platform installers** for Linux (`.deb` and Arch-ready) and Windows (MSI).
+- **Cross-platform installers** for Linux (`.deb` and `.pkg.tar.zst`) and Windows.
 - **Smart setup** that registers native host manifests automatically during installation.
 - **Deep-link support** for `kitsune://` protocol triggers.
 
@@ -41,17 +41,17 @@ sudo apt install ./Kitsune_Download_Manager_0.1.0_amd64.deb
 ```
 
 #### Arch Linux / Manjaro
-Build and install with the bundled `PKGBUILD`. Install hooks generate and register manifests automatically.
+Download the `.pkg.tar.zst` package and install it. Install hooks generate and register manifests automatically.
 
 ```bash
-makepkg -si
+sudo pacman -U kitsune-dm-v0.1.0-linux-x86_64.pkg.tar.zst
 ```
 
 ### Windows
 
 <img src="extension/icons/icon128.png" alt="Kitsune app icon" width="48" />
 
-1. Download and run the **MSI installer**.
+1. Download and run the **installer** (`.exe`).
 2. The installer configures `HKCU\Software\...\NativeMessagingHosts\com.kitsune.dm` automatically.
 
 ### Browser Extension (Developer Mode)
@@ -72,20 +72,23 @@ makepkg -si
 - **Node.js**: v18+ (managed via `npm`)
 
 #### Linux
-**Debian / Ubuntu:**
-```bash
-sudo apt update
-sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-```
+Electron ships its own Chromium, so no WebKit or GTK development packages are
+needed. Packaging the `.deb` and `.pkg.tar.zst` locally needs:
 
-**Arch Linux:**
 ```bash
-sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gtk3 libappindicator-gtk3 librsvg libvips
+# Debian / Ubuntu
+sudo apt install build-essential fakeroot dpkg
+
+# Arch Linux
+sudo pacman -S base-devel fakeroot
 ```
 
 #### Windows
-- **WiX Toolset v3** for MSI bundling.
-  - The build script can help configure WiX, but having WiX in `PATH` is recommended.
+No extra tooling. electron-builder downloads NSIS itself.
+
+> **Note:** the Windows installer cannot be built on Linux — electron-builder
+> runs `rcedit` under wine and its bundled `makensis.exe` is a Windows binary.
+> Build it on Windows or in CI.
 
 ### Build
 
@@ -97,37 +100,42 @@ sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gt
 
 2. **Install dependencies:**
    ```bash
-   npm install
+   npm run install:app
    ```
 
-3. **Run development mode:**
+3. **Build the Rust sidecar** (the app will not start without it):
+   ```bash
+   npm run build:rust
+   ```
+
+4. **Run development mode:**
    ```bash
    npm run dev
    ```
 
-4. **Build production packages:**
+5. **Build production packages:**
 
-   **Windows (MSI):**
+   **Linux (deb, pacman, AppImage):**
    ```bash
-   npm run build:windows
+   npm run dist:linux
    ```
-   Output: `crates/gui/src-tauri/target/release/bundle/msi/`
 
-   **Linux (Deb/AppImage):**
+   **Windows (NSIS installer):**
    ```bash
-   npm run build:linux
+   npm run dist:win
    ```
-   Output: `crates/gui/src-tauri/target/release/bundle/deb/` and `appimage/`
+
+   Output for both: `app/dist/`
 
 ---
 
 ## Release Process
 
 - **Trigger:** GitHub Actions release workflow runs on tag pushes that match `v*` (enforced tag format: `vMAJOR.MINOR.PATCH` with an optional `-<prerelease>` suffix; examples: `v1.4.2`, `v1.5.0-rc.1`).
-- **Version sync guardrail:** Release fails fast unless tag version (including any prerelease suffix) exactly matches all configured versions in `package.json`, `crates/gui/package.json`, `crates/gui/src-tauri/tauri.conf.json`, and `PKGBUILD`.
+- **Version sync guardrail:** Release fails fast unless tag version (including any prerelease suffix) exactly matches all configured versions in `package.json` and `app/package.json`.
 - **Prerelease handling:** Prerelease status is derived from the tag by `scripts/detect-release-prerelease.mjs`; prerelease tags (for example `v1.5.0-rc.1`) are published as GitHub prereleases.
-- **Required release assets:** the workflow normalizes the final GitHub release assets to exactly: `kitsune-dm-v{version}-windows-x64.msi`, `kitsune-dm-v{version}-linux-amd64.deb`, `kitsune-dm-v{version}-linux-x86_64.pkg.tar.zst`, plus `PKGBUILD` and `SHA256SUMS` (sha256 checksums for each normalized asset).
-- **Deterministic publish set:** normalized assets are validated so the publish directory and final GitHub release contain exactly those five assets, with no extras.
+- **Required release assets:** the workflow normalizes the final GitHub release assets to exactly: `kitsune-dm-v{version}-windows-x64.exe`, `kitsune-dm-v{version}-linux-amd64.deb`, `kitsune-dm-v{version}-linux-x86_64.pkg.tar.zst`, plus `SHA256SUMS` (sha256 checksums for each normalized asset).
+- **Deterministic publish set:** normalized assets are validated so the publish directory and final GitHub release contain exactly those four assets, with no extras.
 - **Idempotent reruns:** rerunning the same tag updates or reuses the release, removes unmanaged old assets, and re-uploads managed assets using overwrite semantics (`gh release upload --clobber`).
 - **Out of scope:** artifact signing and publishing to external package repositories are not performed by this workflow.
 
@@ -135,14 +143,17 @@ sudo pacman -S webkit2gtk-4.1 base-devel curl wget openssl appmenu-gtk-module gt
 
 ## Architecture
 
-The project is a Cargo workspace with a Tauri v2 frontend.
+The project is a Cargo workspace plus an Electron app. The Rust engine runs as a
+sidecar process; Electron's main process talks to it over newline-delimited JSON
+on stdio. See [app/README.md](app/README.md) for the details.
 
-| Crate | Path | Description |
-|-------|------|-------------|
+| Component | Path | Description |
+|-----------|------|-------------|
 | **kitsune-core** | `crates/core` | Shared business logic, download engine, and session management. |
+| **kitsune-daemon** | `crates/daemon` | Sidecar process wrapping `kitsune-core` behind a JSON stdio protocol. |
 | **kitsune-shim** | `crates/shim` | Native messaging host that receives browser messages on `stdio` and forwards them via IPC. |
 | **kitsune-cli** | `crates/cli` | CLI tools, including the `native-host-manifest` generator used by installers. |
-| **kitsune-gui** | `crates/gui` | Main Tauri desktop app (React/TypeScript frontend + Rust backend). |
+| **app** | `app` | Electron desktop app (React/TypeScript renderer + main process). |
 
 ---
 

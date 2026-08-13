@@ -1,15 +1,14 @@
 # Kitsune Desktop (Electron)
 
-Electron replacement for the Tauri app in `crates/gui`. It exists because Tauri
-renders through whatever WebKitGTK the host distro ships, which is a large and
-untestable variable on Linux — on NVIDIA + Wayland the Tauri build dies at
-startup with `Gdk-Message: Error 71 (Protocol error) dispatching to Wayland
-display` unless `WEBKIT_DISABLE_DMABUF_RENDERER=1` is set. Electron bundles its
-own Chromium, so the renderer is the same everywhere.
+The desktop app. It replaced a Tauri build, which rendered through whatever
+WebKitGTK the host distro shipped — a large and untestable variable on Linux. On
+NVIDIA + Wayland that build died at startup with `Gdk-Message: Error 71
+(Protocol error) dispatching to Wayland display` unless
+`WEBKIT_DISABLE_DMABUF_RENDERER=1` was set. Electron bundles its own Chromium,
+so the renderer is the same everywhere.
 
-Both apps are present during the migration. The Tauri app remains the shipped
-one until this reaches parity. The renderer here has since been redesigned and
-no longer mirrors `crates/gui` — see [UI](#ui).
+The Tauri app and its `PKGBUILD` were removed once this reached parity; this is
+now the only frontend, and the only thing the release workflow builds.
 
 ## Architecture
 
@@ -69,9 +68,9 @@ Two things worth knowing:
 ## Development
 
 ```bash
-cargo build --release -p kitsune-daemon   # sidecar must exist first
-npm install --prefix app
-npm run app:dev
+npm run install:app
+npm run build:rust   # sidecar must exist before the app will start
+npm run dev
 ```
 
 Set `KITSUNE_DAEMON_PATH` to point at a daemon binary somewhere else.
@@ -79,7 +78,7 @@ Set `KITSUNE_DAEMON_PATH` to point at a daemon binary somewhere else.
 ## Packaging
 
 ```bash
-npm run app:dist:linux    # deb, pacman, AppImage — runs the cargo build first
+npm run dist:linux    # deb, pacman, AppImage — runs the cargo build first
 ```
 
 `electron-builder.yml` copies the daemon, the shim, the manifest generator and
@@ -129,18 +128,22 @@ pointed at nothing whenever the user chose a different directory —
 Windows binary. Build it on Windows (or CI), where `npm run dist:win` also picks
 up `target/release/*.exe` from a native cargo build.
 
-## Parity status
+## Status
 
 Done: download start/cancel/resume, progress and speed, metadata lookup, state
 persistence, tray with show/quit, close-to-tray, single instance, `kitsune://`
 deep links, the shim socket, folder reveal, file deletion, and the native-host
 install hooks for deb, pacman and NSIS.
 
-Not done yet:
+Known gaps:
 
-- CI does not build this app, which also means `build/installer.nsh` has never
-  been through a real NSIS compile — it is wired in and its inputs are verified,
-  but the script itself is untested. Build it on Windows before trusting it.
-- The package is still named `kitsune-dm-app` so it can coexist with the
-  installed `kitsune-dm`. Renaming it at cutover will make it replace the Tauri
-  package.
+- **`build/installer.nsh` has never been through a real NSIS compile.** It is
+  wired in and its inputs are verified, but the script itself is untested, and
+  the Windows installer cannot be built on Linux. The first Windows release
+  build is the real test.
+- **The pacman package is electron-builder's `pacman` target, not a source
+  PKGBUILD.** The release workflow renames its `.pacman` output to
+  `.pkg.tar.zst` for publishing — the file is already a zstd tarball, so this is
+  a rename only. There is no AUR-style build-from-source path anymore.
+- CI builds and type checks the renderer on every push, but does not produce
+  installers; those are only built on a release tag.

@@ -1,32 +1,28 @@
-GUI_DIR   := crates/gui
-RELEASE   := target/release
-DESKTOP   := $(HOME)/.local/share/applications/kitsune-dm.desktop
+APP_DIR := app
 
-.PHONY: build dev check install native-host-register native-host-status verify-installer verify-installer-debian verify-installer-arch verify-installer-windows clean
+.PHONY: build dev check dist native-host-register native-host-status verify-installer verify-installer-debian verify-installer-arch verify-installer-windows clean
 
+# Release binaries for the Rust sidecar plus the bundled renderer. The app is
+# launched from app/dist by `dist`, or straight from source by `dev`.
 build:
-	cd $(GUI_DIR) && npm install --prefer-offline
-	cd $(GUI_DIR) && npm run tauri build -- --no-bundle
-	cargo build --release -p kitsune-cli -p kitsune-shim
+	npm install --prefix $(APP_DIR) --prefer-offline
+	npm run build:rust --prefix $(APP_DIR)
+	npm run build --prefix $(APP_DIR)
 
 dev:
-	cd $(GUI_DIR) && npm install --prefer-offline
-	cd $(GUI_DIR) && npm run tauri dev
+	npm install --prefix $(APP_DIR) --prefer-offline
+	npm run dev --prefix $(APP_DIR)
 
 check:
 	cargo check --workspace
-	cd $(GUI_DIR) && npx tsc --noEmit
+	cargo clippy --workspace --all-targets -- -D warnings
+	cargo test --workspace
+	npm run build --prefix $(APP_DIR)
 
-install: build
-	@mkdir -p $(HOME)/.local/share/applications
-	@mkdir -p $(HOME)/.local/share/icons
-	@cp extension/icons/linux_icon.png $(HOME)/.local/share/icons/kitsune.png
-	@printf '[Desktop Entry]\nName=Kitsune Download Manager\nExec=%s/$(RELEASE)/kitsune-gui %%u\nIcon=kitsune\nType=Application\nMimeType=x-scheme-handler/kitsune;\nCategories=Network;\nStartupNotify=true\n' "$(PWD)" > $(DESKTOP)
-	update-desktop-database $(HOME)/.local/share/applications
-	xdg-mime default kitsune-dm.desktop x-scheme-handler/kitsune
-	@echo "Installed. Protocol handler: $$(xdg-mime query default x-scheme-handler/kitsune)"
-	@$(MAKE) native-host-register
-	@$(MAKE) native-host-status
+# deb, pacman and AppImage into app/dist. Install the one your distro wants.
+dist:
+	npm install --prefix $(APP_DIR) --prefer-offline
+	npm run dist:linux --prefix $(APP_DIR)
 
 native-host-register:
 	@./install_native_host.sh
@@ -48,11 +44,4 @@ verify-installer-windows:
 
 clean:
 	cargo clean
-	rm -rf $(GUI_DIR)/dist $(GUI_DIR)/node_modules
-
-build-windows:
-	npm run build:windows
-
-build-linux:
-	npm run build:linux
-
+	rm -rf $(APP_DIR)/out $(APP_DIR)/dist $(APP_DIR)/node_modules

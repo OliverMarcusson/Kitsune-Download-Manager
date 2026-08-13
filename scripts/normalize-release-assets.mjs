@@ -123,21 +123,20 @@ function findSingleSourceFile(assetId, searchDir, matcher) {
 }
 
 function resolveRawAssetPath(assetId, inputDir) {
-  if (assetId === "windows-msi") {
-    return findSingleSourceFile(assetId, path.join(inputDir, "windows-msi-raw"), (name) => name.endsWith(".msi"));
+  if (assetId === "windows-nsis") {
+    return findSingleSourceFile(assetId, path.join(inputDir, "windows-nsis-raw"), (name) => name.endsWith(".exe"));
   }
 
   if (assetId === "linux-deb") {
     return findSingleSourceFile(assetId, path.join(inputDir, "linux-deb-raw"), (name) => name.endsWith(".deb"));
   }
 
-  if (assetId === "arch-pkgbuild") {
-    return findSingleSourceFile(assetId, path.join(inputDir, "arch-pkgbuild-raw"), (name) => name === "PKGBUILD");
-  }
-
   if (assetId === "arch-package") {
+    // electron-builder's pacman target names its output "*.pacman". The file is
+    // already a zstd tarball, so publishing it as .pkg.tar.zst is a rename only
+    // — which is what Arch users expect to download.
     return findSingleSourceFile(assetId, path.join(inputDir, "linux-arch-pkg-tar-zst-raw"), (name) =>
-      name.endsWith(".pkg.tar.zst"),
+      name.endsWith(".pacman") || name.endsWith(".pkg.tar.zst"),
     );
   }
 

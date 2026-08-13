@@ -40,6 +40,9 @@ linux:
     - AppImage
   category: Network
   icon: resources/icons
+  # Pinned rather than left to derive from package.json: the desktop entry's
+  # StartupWMClass and build/linux-after-upgrade.sh both hardcode this value.
+  executableName: kitsune-dm
   synopsis: The blazingly fast IDM alternative
   description: >-
     Kitsune is a cross-platform download manager focused on native performance
@@ -52,7 +55,7 @@ linux:
       Categories: Network;FileTransfer;
       Keywords: download;manager;idm;kitsune;
       MimeType: x-scheme-handler/kitsune;
-      StartupWMClass: kitsune-download-manager
+      StartupWMClass: kitsune-dm
 
 deb:
   afterInstall: build/linux-after-install.sh

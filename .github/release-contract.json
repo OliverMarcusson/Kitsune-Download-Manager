@@ -5,9 +5,7 @@
     "versionSource": "config-only",
     "configVersionPaths": [
       "package.json#version",
-      "crates/gui/package.json#version",
-      "crates/gui/src-tauri/tauri.conf.json#version",
-      "PKGBUILD#pkgver"
+      "app/package.json#version"
     ],
     "versionMismatch": {
       "enforcement": "fail-fast",
@@ -16,8 +14,8 @@
   },
   "requiredAssets": [
     {
-      "id": "windows-msi",
-      "fileName": "kitsune-dm-v{version}-{platform}-{arch}.msi",
+      "id": "windows-nsis",
+      "fileName": "kitsune-dm-v{version}-{platform}-{arch}.exe",
       "platform": "windows",
       "arch": "x64"
     },
@@ -26,12 +24,6 @@
       "fileName": "kitsune-dm-v{version}-{platform}-{arch}.deb",
       "platform": "linux",
       "arch": "amd64"
-    },
-    {
-      "id": "arch-pkgbuild",
-      "fileName": "PKGBUILD",
-      "platform": "linux",
-      "arch": "x86_64"
     },
     {
       "id": "arch-package",

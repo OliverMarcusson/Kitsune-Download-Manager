@@ -27,7 +27,7 @@ if [ ! -x "$MANIFEST_GENERATOR" ]; then
   exit 1
 fi
 
-MANIFEST_CONTENT="$($MANIFEST_GENERATOR --extension-id "$EXT_ID" --executable-path "$EXE_PATH")"
+MANIFEST_CONTENT="$("$MANIFEST_GENERATOR" --extension-id "$EXT_ID" --executable-path "$EXE_PATH")"
 
 echo "Creating Native Messaging Host manifest..."
 

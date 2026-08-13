@@ -49,25 +49,23 @@ assertOrder(
 
 assertContains("publish_fan_in:\n    name: Publish raw artifact fan-in", "publish_fan_in job");
 assertContains(
-  "needs: [guardrails, build_windows_msi, build_linux_deb, build_linux_arch]",
+  "needs: [guardrails, build_windows_nsis, build_linux]",
   "publish_fan_in needs guardrails and all build jobs",
 );
-assertContains("name: windows-msi-raw\n          path: dist/raw/windows-msi-raw", "Windows fan-in download path");
+assertContains("name: windows-nsis-raw\n          path: dist/raw/windows-nsis-raw", "Windows fan-in download path");
 assertContains("name: linux-deb-raw\n          path: dist/raw/linux-deb-raw", "Debian fan-in download path");
-assertContains("name: arch-pkgbuild-raw\n          path: dist/raw/arch-pkgbuild-raw", "PKGBUILD fan-in download path");
 assertContains(
   "name: linux-arch-pkg-tar-zst-raw\n          path: dist/raw/linux-arch-pkg-tar-zst-raw",
   "Arch package fan-in download path",
 );
 assertContains("name: publish-raw-assets-fan-in\n          path: dist/raw", "fan-in upload artifact");
 assertContains("publish_prepare:\n    name: Publish asset preparation", "publish_prepare job");
-assertContains("needs: [guardrails, build_matrix, publish_fan_in]", "publish_prepare needs fan-in wiring");
+assertContains("needs: [guardrails, publish_fan_in]", "publish_prepare needs fan-in wiring");
 assertContains("name: publish-raw-assets-fan-in\n          path: dist/raw", "publish_prepare fan-in artifact download");
-assertContains("build_windows_msi:\n    name: Build Windows MSI\n    needs: guardrails", "windows build depends on guardrails");
-assertContains("build_linux_deb:\n    name: Build Linux Debian package\n    needs: guardrails", "debian build depends on guardrails");
-assertContains("build_linux_arch:\n    name: Build Linux Arch package\n    needs: guardrails", "arch build depends on guardrails");
-assertContains("Expected exactly one Debian artifact", "Debian deterministic single-artifact guard");
-assertContains("Expected exactly one Arch package artifact", "Arch deterministic single-artifact guard");
+assertContains("build_windows_nsis:\n    name: Build Windows installer\n    needs: guardrails", "windows build depends on guardrails");
+assertContains("build_linux:\n    name: Build Linux packages\n    needs: guardrails", "linux build depends on guardrails");
+assertContains("Expected exactly one .exe in app/dist", "Windows deterministic single-artifact guard");
+assertContains("Expected exactly one $label artifact in app/dist", "Linux deterministic single-artifact guard");
 assertContains(
   "node scripts/normalize-release-assets.mjs --tag \"${{ needs.guardrails.outputs.tag }}\" --input-dir dist/raw --output-dir dist/publish",
   "publish normalization command",
@@ -77,15 +75,14 @@ assertContains("publish:\n    name: Publish GitHub release assets", "publish rel
 assertContains("needs: [guardrails, publish_prepare]", "publish depends on publish_prepare");
 assertContains("contents: write", "publish write permission");
 assertContains("name: publish-assets-normalized\n          path: dist/publish", "publish normalized artifact download");
-assertContains("Expected exactly one MSI in dist/publish", "MSI required asset assertion");
+assertContains("Expected exactly one Windows installer in dist/publish", "Windows required asset assertion");
 assertContains("Expected exactly one Debian package in dist/publish", "Debian required asset assertion");
 assertContains("Expected exactly one Arch package in dist/publish", "Arch required asset assertion");
-assertContains("Missing PKGBUILD in dist/publish", "PKGBUILD required asset assertion");
 assertContains("Missing SHA256SUMS in dist/publish", "SHA256SUMS required asset assertion");
 assertContains("gh api --method PATCH \"/repos/${repo}/releases/${release_id}\"", "release patch command");
 assertContains("gh api --method POST \"/repos/${repo}/releases\"", "release create command");
 assertContains("Assert publish asset set is deterministic", "deterministic publish asset step");
-assertContains("Expected exactly 5 publish assets", "deterministic publish asset count assertion");
+assertContains("Expected exactly 4 publish assets", "deterministic publish asset count assertion");
 assertContains("Publish directory has unexpected extra/missing files", "publish directory mismatch assertion");
 assertContains("Remove unmanaged existing release assets before upload", "unmanaged asset cleanup step");
 assertContains("Deleting unmanaged existing release asset:", "unmanaged release asset deletion log");
@@ -97,6 +94,8 @@ assertScriptContains("Tag \"${normalizedTag}\" does not match releasePolicy.tagP
 assertScriptContains("FAIL-FAST: version mismatch for release tag", "version mismatch fail-fast message");
 
 assertNotContains("softprops/action-gh-release", "GitHub release publish action");
+assertNotContains("crates/gui", "removed Tauri gui crate reference");
+assertNotContains("tauri", "removed Tauri build reference");
 assertNotContains("Release publish intentionally disabled in this task", "publish placeholder block");
 
 console.log("release fail-fast and fan-in assertions passed");

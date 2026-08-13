@@ -81,36 +81,6 @@ function getValueByPath(objectValue, propertyPath, sourcePath) {
   return String(current);
 }
 
-function readPkgbuildVariable(filePath, variableName) {
-  let content = "";
-  try {
-    content = fs.readFileSync(filePath, "utf8");
-  } catch (error) {
-    exitWithError(`Failed to read PKGBUILD source ${filePath}: ${error.message}`);
-  }
-
-  const lines = content.split(/\r?\n/);
-  const variablePattern = new RegExp(`^${variableName}=(.*)$`);
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("#")) {
-      continue;
-    }
-
-    const match = trimmed.match(variablePattern);
-    if (!match) {
-      continue;
-    }
-
-    const rawValue = match[1].trim();
-    const unquoted = rawValue.replace(/^['\"]/, "").replace(/['\"]$/, "");
-    return unquoted;
-  }
-
-  exitWithError(`Variable \"${variableName}\" not found in PKGBUILD source \"${filePath}\"`);
-}
-
 function resolveConfiguredSourceValue(spec) {
   const [relativePath, propertyPath] = spec.split("#");
   if (!relativePath || !propertyPath) {
@@ -128,14 +98,7 @@ function resolveConfiguredSourceValue(spec) {
     };
   }
 
-  if (path.basename(relativePath) === "PKGBUILD") {
-    return {
-      spec,
-      value: readPkgbuildVariable(absolutePath, propertyPath),
-    };
-  }
-
-  exitWithError(`Unsupported source type for \"${spec}\". Supported: JSON files and PKGBUILD`);
+  exitWithError(`Unsupported source type for \"${spec}\". Supported: JSON files`);
 }
 
 function main() {

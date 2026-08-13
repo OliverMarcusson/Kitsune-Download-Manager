@@ -2,11 +2,13 @@
 set -eu
 
 HOST_NAME="com.kitsune.dm"
-DEBIAN_INSTALL_ROOT_DEFAULT="/usr/lib/Kitsune Download Manager"
-ARCH_INSTALL_ROOT_DEFAULT="/usr/lib/kitsune-dm"
+# electron-builder installs deb and pacman to the same prefix, so unlike the
+# Tauri packaging there is no per-distro install root — only the browser
+# manifest directories still differ.
+INSTALL_ROOT_DEFAULT="/opt/Kitsune Download Manager"
 DEBIAN_TARGET_DIRS_DEFAULT="/etc/opt/chrome/native-messaging-hosts /etc/chromium/native-messaging-hosts /etc/chromium-browser/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
 ARCH_TARGET_DIRS_DEFAULT="/etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts /etc/opt/edge/native-messaging-hosts"
-APP_BIN_CANDIDATES_DEFAULT="/usr/bin/kitsune-gui /usr/bin/kitsune-download-manager"
+APP_BIN_CANDIDATES_DEFAULT="/usr/bin/kitsune-dm"
 
 checks=0
 failures=0
@@ -71,27 +73,23 @@ case "$PLATFORM" in
 esac
 
 if [ "$PLATFORM" = "auto" ]; then
-  if [ -d "$DEBIAN_INSTALL_ROOT_DEFAULT" ]; then
+  if [ -f /etc/debian_version ]; then
     PLATFORM="debian"
-  elif [ -d "$ARCH_INSTALL_ROOT_DEFAULT" ]; then
-    PLATFORM="arch"
   else
     PLATFORM="arch"
   fi
 fi
 
 if [ "$PLATFORM" = "debian" ]; then
-  INSTALL_ROOT_DEFAULT="$DEBIAN_INSTALL_ROOT_DEFAULT"
   TARGET_DIRS_DEFAULT="$DEBIAN_TARGET_DIRS_DEFAULT"
 else
-  INSTALL_ROOT_DEFAULT="$ARCH_INSTALL_ROOT_DEFAULT"
   TARGET_DIRS_DEFAULT="$ARCH_TARGET_DIRS_DEFAULT"
 fi
 
 INSTALL_ROOT="${KITSUNE_DM_VERIFY_INSTALL_ROOT:-$INSTALL_ROOT_DEFAULT}"
-SHIM_BIN="${KITSUNE_DM_VERIFY_SHIM_BIN:-$INSTALL_ROOT/installer/bin/kitsune-shim}"
-MANIFEST_BIN="${KITSUNE_DM_VERIFY_MANIFEST_BIN:-$INSTALL_ROOT/installer/bin/native-host-manifest}"
-EXT_ID_FILE="${KITSUNE_DM_VERIFY_EXT_ID_FILE:-$INSTALL_ROOT/installer/extension_id_source.txt}"
+SHIM_BIN="${KITSUNE_DM_VERIFY_SHIM_BIN:-$INSTALL_ROOT/resources/kitsune-shim}"
+MANIFEST_BIN="${KITSUNE_DM_VERIFY_MANIFEST_BIN:-$INSTALL_ROOT/resources/native-host-manifest}"
+EXT_ID_FILE="${KITSUNE_DM_VERIFY_EXT_ID_FILE:-$INSTALL_ROOT/resources/extension_id_source.txt}"
 TARGET_DIRS="${KITSUNE_DM_VERIFY_TARGET_DIRS:-$TARGET_DIRS_DEFAULT}"
 APP_BIN_CANDIDATES="${KITSUNE_DM_VERIFY_APP_BIN_CANDIDATES:-$APP_BIN_CANDIDATES_DEFAULT}"
 APP_BIN_OVERRIDE="${KITSUNE_DM_VERIFY_APP_BIN:-}"

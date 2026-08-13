@@ -16,10 +16,8 @@ MANIFEST_GENERATOR="${KITSUNE_DM_MANIFEST_GENERATOR:-}"
 if [ -z "$MANIFEST_GENERATOR" ]; then
   if [ -x "$SCRIPT_DIR/native-host-manifest" ]; then
     MANIFEST_GENERATOR="$SCRIPT_DIR/native-host-manifest"
-  elif [ -x "/usr/lib/Kitsune Download Manager/installer/bin/native-host-manifest" ]; then
-    MANIFEST_GENERATOR="/usr/lib/Kitsune Download Manager/installer/bin/native-host-manifest"
-  elif [ -x "/usr/lib/kitsune-dm/installer/bin/native-host-manifest" ]; then
-    MANIFEST_GENERATOR="/usr/lib/kitsune-dm/installer/bin/native-host-manifest"
+  elif [ -x "/opt/Kitsune Download Manager/resources/native-host-manifest" ]; then
+    MANIFEST_GENERATOR="/opt/Kitsune Download Manager/resources/native-host-manifest"
   else
     MANIFEST_GENERATOR="$REPO_ROOT/target/release/native-host-manifest"
   fi
@@ -29,10 +27,8 @@ SHIM_PATH="${KITSUNE_DM_SHIM_PATH:-}"
 if [ -z "$SHIM_PATH" ]; then
   if [ -x "$SCRIPT_DIR/kitsune-shim" ]; then
     SHIM_PATH="$SCRIPT_DIR/kitsune-shim"
-  elif [ -x "/usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim" ]; then
-    SHIM_PATH="/usr/lib/Kitsune Download Manager/installer/bin/kitsune-shim"
-  elif [ -x "/usr/lib/kitsune-dm/installer/bin/kitsune-shim" ]; then
-    SHIM_PATH="/usr/lib/kitsune-dm/installer/bin/kitsune-shim"
+  elif [ -x "/opt/Kitsune Download Manager/resources/kitsune-shim" ]; then
+    SHIM_PATH="/opt/Kitsune Download Manager/resources/kitsune-shim"
   else
     SHIM_PATH="$REPO_ROOT/target/release/kitsune-shim"
   fi
@@ -40,12 +36,12 @@ fi
 
 EXT_ID_FILE="${KITSUNE_DM_EXT_ID_FILE:-}"
 if [ -z "$EXT_ID_FILE" ]; then
-  if [ -s "$SCRIPT_DIR/../extension_id_source.txt" ]; then
-    EXT_ID_FILE="$SCRIPT_DIR/../extension_id_source.txt"
-  elif [ -s "/usr/lib/Kitsune Download Manager/installer/extension_id_source.txt" ]; then
-    EXT_ID_FILE="/usr/lib/Kitsune Download Manager/installer/extension_id_source.txt"
-  elif [ -s "/usr/lib/kitsune-dm/installer/extension_id_source.txt" ]; then
-    EXT_ID_FILE="/usr/lib/kitsune-dm/installer/extension_id_source.txt"
+  # electron-builder puts extraResources flat in resources/, so this sits beside
+  # the script rather than one level up as it did under the Tauri layout.
+  if [ -s "$SCRIPT_DIR/extension_id_source.txt" ]; then
+    EXT_ID_FILE="$SCRIPT_DIR/extension_id_source.txt"
+  elif [ -s "/opt/Kitsune Download Manager/resources/extension_id_source.txt" ]; then
+    EXT_ID_FILE="/opt/Kitsune Download Manager/resources/extension_id_source.txt"
   else
     EXT_ID_FILE="$REPO_ROOT/extension/extension_id_source.txt"
   fi
@@ -89,7 +85,9 @@ if [ "$missing_target" -eq 0 ]; then
   exit 0
 fi
 
-MANIFEST_CONTENT=$($MANIFEST_GENERATOR --extension-id "$EXT_ID" --executable-path "$SHIM_PATH")
+# Quoted: the installed path is /opt/Kitsune Download Manager/..., and an
+# unquoted expansion word-splits on those spaces.
+MANIFEST_CONTENT=$("$MANIFEST_GENERATOR" --extension-id "$EXT_ID" --executable-path "$SHIM_PATH")
 
 created=0
 for target_dir in $TARGET_DIRS; do

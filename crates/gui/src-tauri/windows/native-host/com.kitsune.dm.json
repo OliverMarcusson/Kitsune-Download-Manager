@@ -1,9 +1,0 @@
-{
-  "name": "com.kitsune.dm",
-  "description": "Kitsune Download Manager native host",
-  "path": "C:\\Program Files\\Kitsune Download Manager\\installer\\bin\\kitsune-shim.exe",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://ijmmepflhiakpkhhgdlecpdohhhkflno/"
-  ]
-}

@@ -3,18 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix crates/gui",
-    "build": "npm run build --prefix crates/gui",
-    "tauri": "npm run tauri --prefix crates/gui",
-    "build:windows": "npm run build:windows --prefix crates/gui",
-    "build:linux": "npm run build:linux --prefix crates/gui",
-    "install:gui": "npm install --prefix crates/gui",
     "install:app": "npm install --prefix app",
-    "app:dev": "npm run dev --prefix app",
-    "app:build": "npm run build --prefix app",
-    "app:dist:linux": "npm run dist:linux --prefix app"
-  },
-  "workspaces": [
-    "crates/gui"
-  ]
+    "dev": "npm run dev --prefix app",
+    "build": "npm run build --prefix app",
+    "build:rust": "npm run build:rust --prefix app",
+    "dist:linux": "npm run dist:linux --prefix app",
+    "dist:win": "npm run dist:win --prefix app"
+  }
 }

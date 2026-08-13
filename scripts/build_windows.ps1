@@ -1,1 +1,0 @@
-tauri build --config src-tauri/config/windows.json

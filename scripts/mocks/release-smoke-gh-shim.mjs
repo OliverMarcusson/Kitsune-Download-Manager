@@ -10,10 +10,9 @@ function writeJson(value) {
 }
 
 function writeChecksums() {
-  process.stdout.write("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  PKGBUILD\n");
   process.stdout.write("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  kitsune-dm-v1.2.3-linux-amd64.deb\n");
   process.stdout.write("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  kitsune-dm-v1.2.3-linux-x86_64.pkg.tar.zst\n");
-  process.stdout.write("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd  kitsune-dm-v1.2.3-windows-x64.msi\n");
+  process.stdout.write("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd  kitsune-dm-v1.2.3-windows-x64.exe\n");
 }
 
 function releasePayload() {
@@ -23,8 +22,7 @@ function releasePayload() {
     draft: false,
     assets: [
       { id: 1, name: "kitsune-dm-v1.2.3-linux-amd64.deb" },
-      { id: 2, name: "kitsune-dm-v1.2.3-windows-x64.msi" },
-      { id: 3, name: "PKGBUILD" },
+      { id: 2, name: "kitsune-dm-v1.2.3-windows-x64.exe" },
       { id: 4, name: "kitsune-dm-v1.2.3-linux-x86_64.pkg.tar.zst" },
       { id: 9001, name: "SHA256SUMS" },
     ],

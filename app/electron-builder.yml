@@ -74,6 +74,16 @@ deb:
 pacman:
   afterInstall: build/linux-after-install.sh
   afterRemove: build/linux-after-remove.sh
+  depends:
+    - gtk3
+    - libnotify
+    - nss
+    - libxss
+    - libxtst
+    - xdg-utils
+    - at-spi2-core
+    - libsecret
+    - libappindicator
   # electron-builder emits no post_upgrade, but that is the function pacman runs
   # when replacing an installed package, so pass one to fpm directly.
   fpm:

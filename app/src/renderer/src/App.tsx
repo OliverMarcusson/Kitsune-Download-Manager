@@ -1,125 +1,261 @@
-import { useState, useEffect, useCallback } from "react";
-import { Plus } from "lucide-react";
-import { AddDownloadModal } from "./components/AddDownloadModal";
-import { DownloadCard } from "./components/DownloadCard";
-import { ToastContainer, ToastMessage } from "./components/Toast";
-import { useDownloads } from "./hooks/useDownloads";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Plus, Search, X } from "lucide-react"
+import { toast } from "sonner"
 
-function extractUrlFromDeepLink(raw: string): string {
-  const trimmed = raw.trim().replace(/^"|"$/g, "");
-  return trimmed;
+import { AddDownloadDialog } from "./components/AddDownloadDialog"
+import { ConfirmDialog } from "./components/ConfirmDialog"
+import { DownloadRow } from "./components/DownloadRow"
+import { EmptyState } from "./components/EmptyState"
+import { SettingsView } from "./components/SettingsView"
+import { Sidebar, type View } from "./components/Sidebar"
+import { Button } from "./components/ui/button"
+import { Input } from "./components/ui/input"
+import { ScrollArea } from "./components/ui/scroll-area"
+import { Toaster } from "./components/ui/sonner"
+import { TooltipProvider } from "./components/ui/tooltip"
+import { useDownloads } from "./hooks/useDownloads"
+import { useSettings } from "./hooks/useSettings"
+
+const VIEW_TITLES: Record<View, string> = {
+  all: "All downloads",
+  downloading: "Active",
+  paused: "Paused",
+  completed: "Completed",
+  error: "Failed",
+  settings: "Settings",
+}
+
+const EMPTY_COPY: Record<Exclude<View, "settings">, { title: string; description: string }> = {
+  all: {
+    title: "No downloads yet",
+    description:
+      "Start one from here, or send a link over from your browser with the Kitsune extension.",
+  },
+  downloading: {
+    title: "Nothing downloading",
+    description: "Downloads currently in flight will appear here.",
+  },
+  paused: {
+    title: "Nothing paused",
+    description: "Downloads you pause will wait for you here.",
+  },
+  completed: {
+    title: "Nothing finished yet",
+    description: "Completed downloads collect here so you can find them later.",
+  },
+  error: {
+    title: "No failures",
+    description: "Downloads that error out will show up here with the reason why.",
+  },
 }
 
 function App() {
-  const [showModal, setShowModal] = useState(false);
-  const [pendingUrl, setPendingUrl] = useState("");
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const { 
-    downloads, 
-    addDownload, 
-    pauseDownload, 
-    resumeDownload, 
-    removeDownload, 
-    dismissDownload, 
-    openFolder 
-  } = useDownloads();
+  const [view, setView] = useState<View>("all")
+  const [query, setQuery] = useState("")
+  const [addOpen, setAddOpen] = useState(false)
+  const [pendingUrl, setPendingUrl] = useState("")
+  /** Id awaiting confirmation for the destructive "delete files" removal. */
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
-  const dismissToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
+  const { settings, updateSetting, resetSettings } = useSettings()
+  const {
+    downloads,
+    addDownload,
+    pauseDownload,
+    resumeDownload,
+    removeDownload,
+    dismissDownload,
+    openFolder,
+  } = useDownloads()
 
   useEffect(() => {
     return window.kitsune.onDeepLink((incoming) => {
-      const url = extractUrlFromDeepLink(incoming);
-      setPendingUrl(url);
-      setShowModal(true);
-    });
-  }, []);
+      setPendingUrl(incoming.trim().replace(/^"|"$/g, ""))
+      setAddOpen(true)
+    })
+  }, [])
 
   useEffect(() => {
     return window.kitsune.onDownloadError(({ error }) => {
-      setToasts(prev => [...prev, { id: `${Date.now()}`, message: `Download failed: ${error}` }]);
-    });
-  }, []);
+      toast.error("Download failed", { description: error })
+    })
+  }, [])
 
-  const handleStarted = (
-    id: string,
-    url: string,
-    filename: string,
-    path: string,
-    totalSize: number,
-    connections: number
-  ) => {
-    addDownload({ id, url, filename, path, totalSize, connections });
-  };
+  // Progress events rewrite `downloads` several times a second, so the completion
+  // listener reads the list through a ref instead of resubscribing that often.
+  const downloadsRef = useRef(downloads)
+  downloadsRef.current = downloads
 
-  const activeCount = downloads.filter(d => d.status === "downloading").length;
+  useEffect(() => {
+    return window.kitsune.onDownloadCompleted(({ downloadId }) => {
+      const finished = downloadsRef.current.find((d) => d.id === downloadId)
+      toast.success("Download complete", { description: finished?.filename })
+    })
+  }, [])
+
+  const counts = useMemo<Record<View, number>>(
+    () => ({
+      all: downloads.length,
+      downloading: downloads.filter((d) => d.status === "downloading").length,
+      paused: downloads.filter((d) => d.status === "paused").length,
+      completed: downloads.filter((d) => d.status === "completed").length,
+      error: downloads.filter((d) => d.status === "error").length,
+      settings: 0,
+    }),
+    [downloads]
+  )
+
+  const totalSpeed = useMemo(
+    () =>
+      downloads.reduce((sum, d) => (d.status === "downloading" ? sum + d.speed : sum), 0),
+    [downloads]
+  )
+
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+
+    return downloads
+      .filter((d) => view === "all" || view === "settings" || d.status === view)
+      .filter(
+        (d) =>
+          !needle ||
+          d.filename.toLowerCase().includes(needle) ||
+          d.url.toLowerCase().includes(needle)
+      )
+      .slice()
+      .reverse() // Newest first.
+  }, [downloads, view, query])
+
+  const openAddDialog = useCallback(() => {
+    setPendingUrl("")
+    setAddOpen(true)
+  }, [])
+
+  const requestRemove = useCallback(
+    (id: string) => {
+      if (settings.confirmDelete) {
+        setPendingDelete(id)
+        return
+      }
+      void removeDownload(id)
+    },
+    [settings.confirmDelete, removeDownload]
+  )
+
+  const targetOfPendingDelete = downloads.find((d) => d.id === pendingDelete)
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      <header className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center">
-            <img src="/logo.png" alt="Kitsune Logo" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white leading-none">Kitsune</h1>
-            <p className="text-xs text-zinc-500 leading-none mt-0.5">Download Manager</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {activeCount > 0 && (
-            <span className="text-xs text-blue-400 bg-blue-950/50 border border-blue-900/50 px-2.5 py-1 rounded-full">
-              {activeCount} active
-            </span>
-          )}
-          <button
-            onClick={() => { setPendingUrl(""); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Download
-          </button>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-y-auto px-6 py-6">
-        {downloads.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full min-h-64 text-center">
-            <div className="w-16 h-16 mb-4 flex items-center justify-center">
-              <img src="/logo.png" alt="Kitsune Logo" className="w-full h-full object-contain opacity-20 grayscale" />
-            </div>
-            <p className="text-zinc-400 font-medium">No downloads yet</p>
-            <p className="text-zinc-600 text-sm mt-1">Click "Add Download" or use the browser extension</p>
-          </div>
-        ) : (
-          <div className="space-y-3 max-w-2xl mx-auto">
-            {downloads.map(dl => (
-              <DownloadCard 
-                key={dl.id} 
-                download={dl}
-                onPause={pauseDownload}
-                onResume={resumeDownload}
-                onRemove={removeDownload}
-                onDismiss={dismissDownload}
-                onOpenFolder={openFolder}
-              />
-            ))}
-          </div>
-        )}
-      </main>
-
-      {showModal && (
-        <AddDownloadModal
-          initialUrl={pendingUrl}
-          onClose={() => { setShowModal(false); setPendingUrl(""); }}
-          onStarted={handleStarted}
+    <TooltipProvider delayDuration={300}>
+      <div className="flex h-screen overflow-hidden bg-background">
+        <Sidebar
+          view={view}
+          onViewChange={setView}
+          counts={counts}
+          totalSpeed={totalSpeed}
+          activeCount={counts.downloading}
         />
-      )}
 
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-    </div>
-  );
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5">
+            <h1 className="text-sm font-semibold">{VIEW_TITLES[view]}</h1>
+
+            {view !== "settings" && (
+              <>
+                <div className="relative ml-auto w-64">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search downloads"
+                    className="h-8 pl-8 pr-8 text-xs"
+                  />
+                  {query && (
+                    <button
+                      onClick={() => setQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      <span className="sr-only">Clear search</span>
+                    </button>
+                  )}
+                </div>
+
+                <Button size="sm" onClick={openAddDialog}>
+                  <Plus />
+                  Add download
+                </Button>
+              </>
+            )}
+          </header>
+
+          <ScrollArea className="flex-1">
+            {view === "settings" ? (
+              <SettingsView
+                settings={settings}
+                onUpdate={updateSetting}
+                onReset={resetSettings}
+              />
+            ) : visible.length === 0 ? (
+              <div className="h-[calc(100vh-3.5rem)]">
+                {query ? (
+                  <EmptyState
+                    title="No matches"
+                    description={`Nothing here matches "${query.trim()}".`}
+                  />
+                ) : (
+                  <EmptyState
+                    {...EMPTY_COPY[view]}
+                    onAdd={view === "all" ? openAddDialog : undefined}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2.5 p-5">
+                {visible.map((download) => (
+                  <DownloadRow
+                    key={download.id}
+                    download={download}
+                    onPause={pauseDownload}
+                    onResume={resumeDownload}
+                    onRemove={requestRemove}
+                    onDismiss={dismissDownload}
+                    onOpenFolder={openFolder}
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+
+        <AddDownloadDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          initialUrl={pendingUrl}
+          settings={settings}
+          onStarted={(id, url, filename, path, totalSize, connections) =>
+            addDownload({ id, url, filename, path, totalSize, connections })
+          }
+        />
+
+        <ConfirmDialog
+          open={pendingDelete !== null}
+          onOpenChange={(open) => !open && setPendingDelete(null)}
+          title="Delete downloaded files?"
+          description={
+            targetOfPendingDelete
+              ? `"${targetOfPendingDelete.filename}" will be removed from the list and erased from disk. This cannot be undone.`
+              : ""
+          }
+          confirmLabel="Delete files"
+          onConfirm={() => {
+            if (pendingDelete) void removeDownload(pendingDelete)
+          }}
+        />
+
+        <Toaster />
+      </div>
+    </TooltipProvider>
+  )
 }
 
-export default App;
+export default App

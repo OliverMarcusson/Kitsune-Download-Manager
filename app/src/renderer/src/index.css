@@ -1,3 +1,107 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Kitsune is a dark-only app, so the palette lives directly on :root rather than
+ * behind a .dark class. Everything is HSL triples so Tailwind can compose them
+ * with opacity modifiers (bg-primary/10).
+ *
+ * Hues: neutrals are violet-tinted zinc (265deg) so the greys sit under the
+ * accent instead of fighting it; the accent itself is violet 265deg.
+ */
+@layer base {
+  :root {
+    --background: 265 24% 6%;
+    --foreground: 270 20% 96%;
+
+    --card: 265 22% 9%;
+    --card-foreground: 270 20% 96%;
+
+    --popover: 265 24% 8%;
+    --popover-foreground: 270 20% 96%;
+
+    /* Violet accent. Foreground is near-white: violet-600 is dark enough to carry it. */
+    --primary: 265 89% 66%;
+    --primary-foreground: 270 40% 99%;
+
+    --secondary: 265 16% 16%;
+    --secondary-foreground: 270 20% 96%;
+
+    --muted: 265 16% 14%;
+    --muted-foreground: 265 12% 62%;
+
+    --accent: 265 20% 18%;
+    --accent-foreground: 270 20% 96%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 270 40% 99%;
+
+    --success: 152 62% 48%;
+    --success-foreground: 152 80% 8%;
+
+    --warning: 38 92% 58%;
+    --warning-foreground: 38 90% 10%;
+
+    --border: 265 18% 18%;
+    --input: 265 18% 20%;
+    --ring: 265 89% 66%;
+
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    /* The renderer is a fixed app frame, never a scrolling document. */
+    overflow: hidden;
+  }
+
+  /* Slim, self-effacing scrollbars — the stock ones are far too loud on dark. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full border-4 border-solid border-transparent bg-muted-foreground/25 bg-clip-content;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40 bg-clip-content;
+  }
+}
+
+@layer utilities {
+  /*
+   * Ambient violet glow used behind the sidebar and empty states. Kept as a
+   * utility so the two call sites cannot drift apart.
+   */
+  .bg-aurora {
+    background-image:
+      radial-gradient(60rem 30rem at 15% -10%, hsl(var(--primary) / 0.16), transparent 60%),
+      radial-gradient(45rem 25rem at 105% 5%, hsl(280 80% 60% / 0.1), transparent 55%);
+  }
+
+  /* Indeterminate shimmer for progress bars with an unknown total size. */
+  .animate-indeterminate {
+    animation: kitsune-indeterminate 1.4s ease-in-out infinite;
+  }
+
+  @keyframes kitsune-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+}

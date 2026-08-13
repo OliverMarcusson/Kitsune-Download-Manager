@@ -8,7 +8,8 @@ display` unless `WEBKIT_DISABLE_DMABUF_RENDERER=1` is set. Electron bundles its
 own Chromium, so the renderer is the same everywhere.
 
 Both apps are present during the migration. The Tauri app remains the shipped
-one until this reaches parity.
+one until this reaches parity. The renderer here has since been redesigned and
+no longer mirrors `crates/gui` — see [UI](#ui).
 
 ## Architecture
 
@@ -41,6 +42,29 @@ main-process calls that never needed it.
 `src/main/paths.ts` reimplements Rust's `dirs::config_dir()` rather than using
 Electron's `app.getPath('userData')` — the latter resolves to a product-named
 directory the shim does not know about.
+
+## UI
+
+shadcn/ui components (`src/renderer/src/components/ui`) over Tailwind, in a
+dark-only violet palette. The palette lives as HSL triples on `:root` in
+`index.css` and is mapped to Tailwind tokens in `tailwind.config.js`; there is no
+`.dark` class and no light theme, so colours belong in tokens (`bg-primary`,
+`text-muted-foreground`) rather than as literal `zinc-800`/`blue-600` classes.
+
+The shell is a status sidebar plus a filtered list. Preferences are renderer-only
+and live in `localStorage` (`useSettings`) — nothing in main or the sidecar reads
+them, so no IPC channel was added for settings.
+
+Two things worth knowing:
+
+- **Asset URLs must be imported, not absolute.** Production loads the renderer
+  with `loadFile`, so a `src="/logo.png"` resolves against the filesystem root
+  and silently 404s. Import assets (`import logoUrl from "@/assets/logo.png"`)
+  and let Vite emit a relative URL.
+- **`connections` and `activeConnections` are different things.** The former is
+  the count a download was started with and is what resume replays; the latter is
+  whatever the daemon currently reports live. Persisting the live value would
+  change the connection count on resume.
 
 ## Development
 

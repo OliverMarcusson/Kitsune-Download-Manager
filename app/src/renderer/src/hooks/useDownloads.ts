@@ -19,7 +19,10 @@ export interface Download {
   speed: number;
   eta: number;
   status: DownloadStatus;
+  /** Connection count the download was started with; reused when resuming. */
   connections: number;
+  /** Workers the sidecar currently reports as live. Never persisted. */
+  activeConnections: number;
   error?: string;
   startedAt: number;
 }
@@ -51,6 +54,7 @@ function fromPersistedDownload(p: PersistedDownload): Download {
     eta: 0,
     status: p.status === "downloading" ? "paused" : (p.status as DownloadStatus),
     connections: p.connections,
+    activeConnections: 0,
     startedAt: p.started_at,
   };
 }
@@ -61,7 +65,10 @@ export function useDownloads() {
   const initializedRef = useRef(false);
 
   const addDownload = useCallback((
-    download: Omit<Download, "downloadedBytes" | "speed" | "eta" | "status" | "startedAt">
+    download: Omit<
+      Download,
+      "downloadedBytes" | "speed" | "eta" | "status" | "startedAt" | "activeConnections"
+    >
   ) => {
     const newDownload: Download = {
       ...download,
@@ -69,6 +76,7 @@ export function useDownloads() {
       speed: 0,
       eta: 0,
       status: "downloading",
+      activeConnections: 0,
       startedAt: Date.now(),
     };
     setDownloads(prev => [...prev, newDownload]);
@@ -78,14 +86,19 @@ export function useDownloads() {
 
   const pauseDownload = useCallback((id: string) => {
     void window.kitsune.cancelDownload(id);
-    setDownloads(prev => prev.map(d => d.id === id ? { ...d, status: "paused", speed: 0, eta: 0 } : d));
+    setDownloads(prev => prev.map(d =>
+      d.id === id ? { ...d, status: "paused", speed: 0, eta: 0, activeConnections: 0 } : d
+    ));
   }, []);
 
   const resumeDownload = useCallback((id: string) => {
     const target = downloads.find(d => d.id === id);
     if (!target) return;
 
-    setDownloads(prev => prev.map(d => d.id === id ? { ...d, status: "downloading" } : d));
+    // Retrying a failed download must clear the stale error off the row.
+    setDownloads(prev => prev.map(d =>
+      d.id === id ? { ...d, status: "downloading", error: undefined } : d
+    ));
     void window.kitsune.startDownload({
       downloadId: target.id,
       url: target.url,
@@ -102,13 +115,9 @@ export function useDownloads() {
       void window.kitsune.cancelDownload(id);
     }
 
-    // Delete session file
+    // Drop both the resume session and the (partial or finished) payload; the
+    // non-destructive counterpart is dismissDownload, which only clears the row.
     void window.kitsune.deleteFile(`${target.path}.kitsune`);
-    // Delete actual file (optional, but requested as "Remove the download when its done or paused/stopped")
-    // If it's done, maybe we don't want to delete the file? 
-    // Usually "Remove" in DMs means remove from list and optionally delete files.
-    // The prompt says "removing the download when its done or paused/stopped".
-    // I'll delete the partial/completed file too for "Remove".
     void window.kitsune.deleteFile(target.path);
 
     setDownloads(prev => prev.filter(d => d.id !== id));
@@ -173,7 +182,7 @@ export function useDownloads() {
 
         return prev.map(d =>
           d.id === downloadId
-            ? { ...d, downloadedBytes: newDownloaded, speed, eta, connections: activeWorkers }
+            ? { ...d, downloadedBytes: newDownloaded, speed, eta, activeConnections: activeWorkers }
             : d
         );
       });
@@ -183,7 +192,16 @@ export function useDownloads() {
       setDownloads(prev =>
         prev.map(d =>
           d.id === payload.downloadId
-            ? { ...d, status: "completed" as DownloadStatus, speed: 0, eta: 0 }
+            ? {
+                ...d,
+                status: "completed" as DownloadStatus,
+                speed: 0,
+                eta: 0,
+                activeConnections: 0,
+                // A completed download with no Content-Length still ended up
+                // this many bytes long, so the row can stop saying "unknown".
+                totalSize: d.totalSize > 0 ? d.totalSize : d.downloadedBytes,
+              }
             : d
         )
       );
@@ -193,7 +211,14 @@ export function useDownloads() {
       setDownloads(prev =>
         prev.map(d =>
           d.id === payload.downloadId
-            ? { ...d, status: "error" as DownloadStatus, error: payload.error }
+            ? {
+                ...d,
+                status: "error" as DownloadStatus,
+                error: payload.error,
+                speed: 0,
+                eta: 0,
+                activeConnections: 0,
+              }
             : d
         )
       );
@@ -203,7 +228,7 @@ export function useDownloads() {
       setDownloads(prev =>
         prev.map(d =>
           d.id === payload.downloadId
-            ? { ...d, status: "paused" as DownloadStatus, speed: 0, eta: 0 }
+            ? { ...d, status: "paused" as DownloadStatus, speed: 0, eta: 0, activeConnections: 0 }
             : d
         )
       );
